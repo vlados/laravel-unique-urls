@@ -12,7 +12,7 @@ class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-unique-urls')
             ->hasConfigFile()
-            ->hasRoute('routes')
+            ->hasRoute('web')
             ->hasMigration('create_laravel-unique-urls_table');
     }
 }

@@ -18,4 +18,10 @@ return new class extends Migration
             $table->morphs('related');
         });
     }
+
+    public function down()
+    {
+        Schema::dropIfExists('urls');
+    }
+
 };

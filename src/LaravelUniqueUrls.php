@@ -14,8 +14,8 @@ class LaravelUniqueUrls
         }
 
         $slugController = new $urlObj->controller();
-        $arguments = $urlObj->arguments;
-        $arguments['related'] = $urlObj->related;
+        $arguments = $urlObj->getAttribute('arguments');
+        $arguments['related'] = $urlObj->getRelation('related');
         if (isset($urlObj->method, $arguments) && method_exists($urlObj->controller, $urlObj->method)) {
             $called = $slugController->{$urlObj->method}($request, $arguments);
         } elseif (isset($urlObj->method) && ! isset($arguments) && method_exists($urlObj->controller, $urlObj->method)) {

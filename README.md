@@ -7,13 +7,11 @@
 
 A package for using and generating unique urls for each Eloquent model in Laravel. This package is inspired by [spatie/laravel-sluggable](https://github.com/spatie/laravel-sluggable) but making the urls unique.
 
-## Support us
+### Goals:
+- When create or update a model to generate a unique url based on urlStrategy() function inside each model
+- If the url exists to create a new url with suffix _1, _2, etc.
+- If we update the model to create a redirect from the old to the new url
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/laravel-unique-urls.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/laravel-unique-urls)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
 
 ## Installation
 

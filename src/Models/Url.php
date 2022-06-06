@@ -5,6 +5,20 @@ namespace Vlados\LaravelUniqueUrls\Models;
 use Exception;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Support\Carbon;
+
+/**
+ * Vlados\LaravelUniqueUrls\Models\Url.
+ * @property string $slug
+ * @property string $controller
+ * @property string $method
+ * @property mixed $arguments
+ * @property string $language
+ * @property MorphTo $related
+ * @property Carbon|null $created_at
+ * @property Carbon|null $updated_at
+ */
 
 class Url extends Model
 {
@@ -16,12 +30,12 @@ class Url extends Model
         'arguments' => 'json',
     ];
 
-    public function getRouteKeyName()
+    public function getRouteKeyName(): string
     {
         return 'slug';
     }
 
-    public function related()
+    public function related(): MorphTo
     {
         return $this->morphTo();
     }
@@ -43,7 +57,7 @@ class Url extends Model
             return $new_slug;
         }
 
-        throw new Exception('Error creating slug for '.$model);
+        throw new Exception('Error creating slug for ' . $model);
     }
 
     private static function makeUniqueSlug($slug, $where)
@@ -51,23 +65,21 @@ class Url extends Model
         $originalSlug = $slug;
         $i = 1;
         while (self::otherRecordExistsWithSlug($slug, $where)) {
-            $slug = $originalSlug.'_'.$i;
+            $slug = $originalSlug . '_' . $i;
             ++$i;
         }
 
         return $slug;
     }
 
-    private static function otherRecordExistsWithSlug(string $slug, $whereModel): bool
+    private static function otherRecordExistsWithSlug(string $path, $whereModel): bool
     {
         $query = self::whereNot(function ($query) use ($whereModel) {
             $query->where('related_id', $whereModel['id'])
-                ->where('related_type', $whereModel['type'])
-            ;
+                ->where('related_type', $whereModel['type']);
         })
-            ->where('slug', $slug)
-            ->withoutGlobalScopes()
-        ;
+            ->where('slug', $path)
+            ->withoutGlobalScopes();
 
         return $query->exists();
     }

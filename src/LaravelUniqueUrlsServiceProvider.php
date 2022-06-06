@@ -4,7 +4,6 @@ namespace Vlados\LaravelUniqueUrls;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Vlados\LaravelUniqueUrls\Commands\LaravelUniqueUrlsCommand;
 
 class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
 {

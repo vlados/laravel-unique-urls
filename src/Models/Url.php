@@ -33,7 +33,7 @@ class Url extends Model
      */
     public static function makeSlug(string $slug, Model $model): string
     {
-        if (!$slug) {
+        if (! $slug) {
             throw new Exception('Slug cannot be empty');
         }
         $where = $model->only(['id', 'type']);
@@ -72,4 +72,3 @@ class Url extends Model
         return $query->exists();
     }
 }
-

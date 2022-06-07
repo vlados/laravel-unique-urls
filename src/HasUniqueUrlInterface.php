@@ -7,6 +7,7 @@ use Closure;
 interface HasUniqueUrlInterface
 {
     public function url();
+
     public function getSlugAttribute();
 
     /*

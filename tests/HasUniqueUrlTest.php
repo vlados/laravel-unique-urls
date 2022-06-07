@@ -1,8 +1,8 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 use Illuminate\Http\Request;
+use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 //uses(RefreshDatabase::class);
 

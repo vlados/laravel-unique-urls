@@ -2,6 +2,7 @@
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 //uses(RefreshDatabase::class);
@@ -33,6 +34,22 @@ test('Check if suffix is added for equal 3 records', closure: function () {
     expect($model->id)->toEqual(3);
     expect($model->getUrl())->toEqual(url('test-multiple-records_2'));
     expect($model->getUrl(false))->toEqual('test-multiple-records_2');
+});
+
+
+test('Generate urls after import', closure: function () {
+    $generate = 10;
+    for ($i = 0;$i < $generate; $i++) {
+        $model = new TestModel();
+        $model->autoGenerateUrls = false;
+        $model->name = \Pest\Faker\faker()->text(20).time();
+        $model->save();
+        expect($model->url)->toBeNull();
+    }
+    TestModel::all()->each(callback: function (TestModel $model) {
+        $model->generateUrl();
+        expect($model->getUrl(false))->toEqual('test-' . Str::slug($model->getAttribute('name')));
+    });
 });
 
 //test('Check if redirect after update', closure: function () {

@@ -31,4 +31,9 @@ class LaravelUniqueUrls
 
         abort('404');
     }
+
+    public function handleRedirect($request, $arguments = [])
+    {
+        return redirect($arguments['redirect_to'], config('unique-urls.redirect_http_code', 301));
+    }
 }

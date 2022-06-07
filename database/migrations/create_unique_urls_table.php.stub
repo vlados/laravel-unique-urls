@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('controller');
             $table->string('method')->default('view');
             $table->json('arguments')->nullable();
-            $table->morphs('related');
+            $table->nullableMorphs('related');
         });
     }
 

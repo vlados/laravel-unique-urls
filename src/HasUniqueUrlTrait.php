@@ -8,30 +8,58 @@ use Vlados\LaravelUniqueUrls\Models\Url;
 
 trait HasUniqueUrlTrait
 {
+    abstract public function getUrlHandler();
+
     protected static function bootHasUniqueUrlTrait(): void
     {
-        static::creating(function (Model $model) {
+        static::created(function (Model $model) {
             $model->generateUrlOnCreate();
         });
 
-        static::updating(function (Model $model) {
+        static::updated(function (Model $model) {
             $model->generateUrlOnUpdate();
         });
     }
 
+    /**
+     * @throws \Exception
+     */
     protected function generateUrlOnCreate(): void
     {
-        $slug = $this->urlStrategy();
-        dd($slug);
-//        $this->addSlug();
+        $unique_url = Url::makeSlug($this->urlStrategy(), $this);
+        $urls = [];
+        foreach (config('unique-urls.languages') as $lang) {
+            $prefix = (config('app.fallback_locale') == $lang) ? '' : $lang.'/';
+            $new_url = $this->getUrlHandler();
+            $new_url['language'] = $lang;
+            $new_url['slug'] = $prefix.$unique_url;
+            $urls[] = $new_url;
+        }
+        $this->url()->createMany($urls);
     }
 
     protected function generateUrlOnUpdate(): void
     {
-        $this->addSlug();
+        $unique_url = Url::makeSlug($this->urlStrategy(), $this);
+        $this->url()->get()->each(function (Url $url) use ($unique_url) {
+            $prefix = (config('app.fallback_locale') == $url->getAttribute('language')) ? '' : $url->getAttribute('language').'/';
+//            $redirect_url = $url->replicate();
+//            $redirect_url->controller = LaravelUniqueUrls::class;
+//            $redirect_url->related = null;
+//            $redirect_url->method = 'handleRedirect';
+//            $redirect_url->arguments = [
+//                'original_model' => $url->getAttribute('related_type'),
+//                'original_id' => $url->getAttribute('related_id'),
+//                'redirect_to' => $prefix.$unique_url,
+//            ];
+            $url->update([
+                'slug' => $prefix.$unique_url,
+            ]);
+            $url->save();
+        });
     }
 
-    public function url()
+    public function url(): \Illuminate\Database\Eloquent\Relations\MorphOne
     {
         return $this->morphOne(Url::class, 'related');
     }
@@ -41,11 +69,13 @@ trait HasUniqueUrlTrait
      * @return string
      * @throws \Throwable
      */
-    public function getSlugAttribute(): string
+    public function getUrl($absolute = true): string
     {
         throw_if(is_null($this->url), 'The model has no generated url');
 
-        return url($this->url->where('language', app()->getLocale())->first()->slug);
+        $url = $this->url()->where('language', app()->getLocale())->first()->slug;
+
+        return $absolute ? url($url) : $url;
     }
 
     public function urlStrategy(): string

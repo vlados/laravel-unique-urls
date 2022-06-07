@@ -6,6 +6,7 @@ use File;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Application;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsServiceProvider;
@@ -17,10 +18,11 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn(string $modelName) => 'Vlados\\LaravelUniqueUrls\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
+            fn (string $modelName) => 'Vlados\\LaravelUniqueUrls\\Database\\Factories\\' . class_basename($modelName) . 'Factory'
         );
 
         $this->setUpDatabase($this->app);
+        $this->setUpRoutes($this->app);
     }
 
     protected function getPackageProviders($app)
@@ -59,14 +61,22 @@ class TestCase extends Orchestra
         Schema::create('test_models', function (Blueprint $table) {
             $table->increments('id');
             $table->string('name')->nullable();
-            $table->string('other_field')->nullable();
-            $table->string('url')->nullable();
         });
-
     }
 
     protected function getTempDirectory(): string
     {
         return __DIR__ . '/temp';
+    }
+
+    /**
+     * @param \Illuminate\Foundation\Application $app
+     */
+    protected function setUpRoutes(Application $app)
+    {
+        Route::get('{urlObj}', [
+            \Vlados\LaravelUniqueUrls\LaravelUniqueUrls::class, 'handleRequest',
+        ])
+            ->where('urlObj', '.*');
     }
 }

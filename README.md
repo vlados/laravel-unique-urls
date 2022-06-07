@@ -35,10 +35,36 @@ php artisan vendor:publish --tag="laravel-unique-urls-config"
 ```
 
 ## Usage
-
+Add to the model:
 ```php
-$laravelUniqueUrls = new Vlados\LaravelUniqueUrls();
-echo $laravelUniqueUrls->echoPhrase('Hello, Vlados!');
+use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+```
+In your method add these methods:
+```php
+public function urlStrategy(): string
+{
+    return Str::slug($this->getAttribute('name'));
+}
+
+public function getUrlHandler(): array
+{
+    return [
+        // The controller used to handle the request
+        'controller' => CategoryController::class,
+        // The method
+        'method' => 'view',
+        // additional arguments sent to this method
+        'arguments' => [],
+    ];
+}
+```
+
+The method for handling the request:
+```php
+public function view(Request $request, $arguments = [])
+{
+    dd($arguments);
+}
 ```
 
 ## Testing

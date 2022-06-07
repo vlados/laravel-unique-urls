@@ -6,14 +6,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
+/**
+ * @property bool $autoGenerateUrls
+ */
 trait HasUniqueUrlTrait
 {
     abstract public function getUrlHandler();
+    public bool $autoGenerateUrls = true;
 
     protected static function bootHasUniqueUrlTrait(): void
     {
         static::created(function (Model $model) {
-            $model->generateUrlOnCreate();
+            if ($model->autoGenerateUrls === false) {
+                return;
+            }
+            $model->generateUrl();
         });
 
         static::updated(function (Model $model) {
@@ -24,7 +31,7 @@ trait HasUniqueUrlTrait
     /**
      * @throws \Exception
      */
-    protected function generateUrlOnCreate(): void
+    public function generateUrl(): void
     {
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
         $urls = [];
@@ -43,15 +50,6 @@ trait HasUniqueUrlTrait
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
         $this->url()->get()->each(function (Url $url) use ($unique_url) {
             $prefix = (config('app.fallback_locale') == $url->getAttribute('language')) ? '' : $url->getAttribute('language').'/';
-//            $redirect_url = $url->replicate();
-//            $redirect_url->controller = LaravelUniqueUrls::class;
-//            $redirect_url->related = null;
-//            $redirect_url->method = 'handleRedirect';
-//            $redirect_url->arguments = [
-//                'original_model' => $url->getAttribute('related_type'),
-//                'original_id' => $url->getAttribute('related_id'),
-//                'redirect_to' => $prefix.$unique_url,
-//            ];
             $url->update([
                 'slug' => $prefix.$unique_url,
             ]);

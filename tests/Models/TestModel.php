@@ -23,7 +23,7 @@ class TestModel extends Model
     {
         return 'test-' . Str::slug($this->getAttribute('name'));
     }
-    
+
     public function getUrlHandler(): array
     {
         return [

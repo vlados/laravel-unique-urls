@@ -6,7 +6,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
-use Vlados\LaravelUniqueUrls\UrlHandlerOptions;
 
 /**
  * Vlados\LaravelUniqueUrls\Tests\Models\TestModel.

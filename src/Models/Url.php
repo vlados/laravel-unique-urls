@@ -17,6 +17,8 @@ use Vlados\LaravelUniqueUrls\LaravelUniqueUrls;
  * @property mixed $arguments
  * @property string $language
  * @property MorphTo $related
+ * @property mixed $related_id
+ * @property mixed $related_type
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */

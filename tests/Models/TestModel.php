@@ -24,7 +24,12 @@ class TestModel extends Model
         return 'test-' . Str::slug($this->getAttribute('name'));
     }
 
-    public function getUrlHandler()
+    public function isAutoGenerateUrls(): bool
+    {
+        return false;
+    }
+
+    public function getUrlHandler(): array
     {
         return [
             'controller' => TestUrlHandler::class,

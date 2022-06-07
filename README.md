@@ -67,6 +67,20 @@ public function view(Request $request, $arguments = [])
 }
 ```
 
+To disable automatically generating the urls on create or update overwrite the method `isAutoGenerateUrls` in the model:
+```php
+public function isAutoGenerateUrls(): bool
+{
+    return false;
+}
+```
+and call `generateUrl()` later like this:
+```php
+YourModel::all()->each(function (YourModel $model) {
+    $model->generateUrl();
+});
+```
+
 ## Testing
 
 ```bash

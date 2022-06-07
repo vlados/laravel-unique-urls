@@ -41,7 +41,7 @@ test('Generate urls after import', closure: function () {
     $generate = 10;
     for ($i = 0;$i < $generate; $i++) {
         $model = new TestModel();
-        $model->autoGenerateUrls = false;
+        $model->setAutoGenerateUrls(false);
         $model->name = \Pest\Faker\faker()->text(20).time();
         $model->save();
         expect($model->url)->toBeNull();

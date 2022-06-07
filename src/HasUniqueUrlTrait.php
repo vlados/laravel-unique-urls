@@ -12,18 +12,22 @@ use Vlados\LaravelUniqueUrls\Models\Url;
 trait HasUniqueUrlTrait
 {
     abstract public function getUrlHandler();
-    public bool $autoGenerateUrls = true;
+
+    private bool $autoGenerateUrls = true;
 
     protected static function bootHasUniqueUrlTrait(): void
     {
         static::created(function (Model $model) {
-            if ($model->autoGenerateUrls === false) {
+            if ($model->isAutoGenerateUrls() === false) {
                 return;
             }
             $model->generateUrl();
         });
 
         static::updated(function (Model $model) {
+            if ($model->isAutoGenerateUrls() === false) {
+                return;
+            }
             $model->generateUrlOnUpdate();
         });
     }
@@ -36,22 +40,28 @@ trait HasUniqueUrlTrait
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
         $urls = [];
         foreach (config('unique-urls.languages') as $lang) {
-            $prefix = (config('app.fallback_locale') == $lang) ? '' : $lang.'/';
+            $prefix = (config('app.fallback_locale') == $lang) ? '' : $lang . '/';
             $new_url = $this->getUrlHandler();
             $new_url['language'] = $lang;
-            $new_url['slug'] = $prefix.$unique_url;
+            $new_url['slug'] = $prefix . $unique_url;
             $urls[] = $new_url;
         }
-        $this->url()->createMany($urls);
+        if (count($urls)) {
+            $this->url()->createMany($urls);
+        }
     }
 
     protected function generateUrlOnUpdate(): void
     {
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
         $this->url()->get()->each(function (Url $url) use ($unique_url) {
-            $prefix = (config('app.fallback_locale') == $url->getAttribute('language')) ? '' : $url->getAttribute('language').'/';
+            $prefix = (config('app.fallback_locale') == $url->getAttribute('language')) ? '' : $url->getAttribute('language') . '/';
+            if ($url->getAttribute('slug') === $prefix . $unique_url) {
+                return;
+            }
+
             $url->update([
-                'slug' => $prefix.$unique_url,
+                'slug' => $prefix . $unique_url,
             ]);
             $url->save();
         });
@@ -79,5 +89,22 @@ trait HasUniqueUrlTrait
     public function urlStrategy(): string
     {
         return Str::slug($this->getAttribute('name'));
+    }
+
+    /**
+     * Generate automatically the urls on create. You can disable it and manually trigger it after
+     * @return bool
+     */
+    public function isAutoGenerateUrls(): bool
+    {
+        return $this->autoGenerateUrls;
+    }
+
+    /**
+     * @param bool $autoGenerateUrls
+     */
+    public function setAutoGenerateUrls(bool $autoGenerateUrls): void
+    {
+        $this->autoGenerateUrls = $autoGenerateUrls;
     }
 }

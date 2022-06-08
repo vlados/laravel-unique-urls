@@ -7,6 +7,15 @@
 
 A package for using and generating unique urls for each Eloquent model in Laravel. This package is inspired by [spatie/laravel-sluggable](https://github.com/spatie/laravel-sluggable) but making the urls unique.
 
+- [Installation](#installation)
+- [Usage](#usage)
+    - [Configuration](#configuration)
+    - [Routes]()
+    - [Prepare your model](#prepare-your-model)
+    - [Disable auto creating urls](#batch-import)
+    - [Livewire](#livewire)
+- [Contributing](#contributing)
+
 ### Goals:
 - When create or update a model to generate a unique url based on urlStrategy() function inside each model
 - If the url exists to create a new url with suffix _1, _2, etc.
@@ -28,35 +37,47 @@ php artisan vendor:publish --tag="laravel-unique-urls-migrations"
 php artisan migrate
 ```
 
-You can publish the config file with:
 
+## Usage
+
+### Configuration
+You can publish the config file with:
 ```bash
 php artisan vendor:publish --tag="laravel-unique-urls-config"
 ```
-
-## Usage
-Add to the model:
+There will create `unique-urls.php` with:
 ```php
-use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+return [
+    // Language versions of the urls
+    // 
+    'languages' => ['bg','en'],
+    'redirect_http_code' => 301,
+];
 ```
-In your method add these methods:
-```php
-public function urlStrategy(): string
-{
-    return Str::slug($this->getAttribute('name'));
-}
 
-public function getUrlHandler(): array
+### Prepare your model
+In your Model add these methods:
+```php
+class MyModel extends Model
 {
-    return [
-        // The controller used to handle the request
-        'controller' => CategoryController::class,
-        // The method
-        'method' => 'view',
-        // additional arguments sent to this method
-        'arguments' => [],
-    ];
-}
+    use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+
+    public function urlStrategy(): string
+    {
+        return Str::slug($this->getAttribute('name'));
+    }
+    
+    public function urlHandler(): array
+    {
+        return [
+            // The controller used to handle the request
+            'controller' => CategoryController::class,
+            // The method
+            'method' => 'view',
+            // additional arguments sent to this method
+            'arguments' => [],
+        ];
+    }
 ```
 
 The method for handling the request:
@@ -67,6 +88,12 @@ public function view(Request $request, $arguments = [])
 }
 ```
 
+And last, add this line at the end of your `routes/web.php`
+```php
+Route::get('{urlObj}', [\Vlados\LaravelUniqueUrls\LaravelUniqueUrls::class, 'handleRequest'])->where('urlObj', '.*');
+```
+### Batch import
+If for example you have category tree and you need to import all the data before creating the urls, you can disable the automatic generation of the url on model creation 
 To disable automatically generating the urls on create or update overwrite the method `isAutoGenerateUrls` in the model:
 ```php
 public function isAutoGenerateUrls(): bool
@@ -79,6 +106,41 @@ and call `generateUrl()` later like this:
 YourModel::all()->each(function (YourModel $model) {
     $model->generateUrl();
 });
+```
+### Livewire
+To use [Livewire full-page component](https://laravel-livewire.com/docs/2.x/rendering-components#page-components) to handle the request, first set in `urlHandler()` function in your model:
+```php
+public function urlHandler(): array
+{
+    return [
+        // The Livewire controller
+        'controller' => CategoryController::class,
+        // The method should be empty
+        'method' => '',
+        // additional arguments sent to the mount() function
+        'arguments' => [],
+    ];
+}
+```
+Example livewire component:
+```php
+class LivewireComponentExample extends Component
+{
+    private Url $urlModel;
+    private array $url_arguments;
+
+    public function mount(Url $urlObj, $arguments = [])
+    {
+        $this->urlModel = $urlObj;
+        $this->url_arguments = $arguments;
+    }
+
+    public function render()
+    {
+        return view('livewire.view-category');
+    }
+}
+
 ```
 
 ## Testing

@@ -24,7 +24,7 @@ class TestModel extends Model
         return 'test-' . Str::slug($this->getAttribute('name'));
     }
 
-    public function getUrlHandler(): array
+    public function urlHandler(): array
     {
         return [
             'controller' => TestUrlHandler::class,

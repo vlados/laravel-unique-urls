@@ -15,7 +15,12 @@ class LaravelUniqueUrls
 
         $slugController = new $urlObj->controller();
         $arguments = $urlObj->getAttribute('arguments');
-        $arguments['related'] = $urlObj->getRelation('related');
+        if (method_exists($slugController, '__invoke') && $urlObj->getAttribute('method') === '') {
+            // if it is livewire
+            $request->route()->setParameter('arguments', $arguments);
+            return \App::call([$slugController, '__invoke']);
+        }
+        $arguments['related'] = $urlObj->related;
         if (isset($urlObj->method, $arguments) && method_exists($urlObj->controller, $urlObj->method)) {
             $called = $slugController->{$urlObj->method}($request, $arguments);
         } elseif (isset($urlObj->method) && ! isset($arguments) && method_exists($urlObj->controller, $urlObj->method)) {
@@ -28,7 +33,6 @@ class LaravelUniqueUrls
         if (isset($called) && false !== $called) {
             return $called;
         }
-
         abort('404');
     }
 

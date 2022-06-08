@@ -22,7 +22,6 @@ use Vlados\LaravelUniqueUrls\LaravelUniqueUrls;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
-
 class Url extends Model
 {
     use HasFactory;
@@ -36,7 +35,7 @@ class Url extends Model
     protected static function booted()
     {
         static::updated(callback: function (Url $url) {
-            if (! $url->isDirty('slug')) {
+            if (!$url->isDirty('slug')) {
                 return;
             }
             Url::create([
@@ -70,7 +69,7 @@ class Url extends Model
      */
     public static function makeSlug(string $slug, Model $model): string
     {
-        if (! $slug) {
+        if (!$slug) {
             throw new Exception('Slug cannot be empty');
         }
         $where = $model->only(['id', 'type']);
@@ -97,12 +96,17 @@ class Url extends Model
 
     private static function otherRecordExistsWithSlug(string $path, $whereModel): bool
     {
-        $query = self::whereNot(function ($query) use ($whereModel) {
-            $query->where('related_id', $whereModel['id'])
-                ->where('related_type', $whereModel['type']);
+        $query = self::where(function ($query) use ($whereModel) {
+            $query->whereNot(function ($query) use ($whereModel) {
+                $query->where('related_id', $whereModel['id'])
+                    ->where('related_type', $whereModel['type']);
+            })
+                ->orWhere(function ($query) use ($whereModel): void {
+                    $query->whereNull('related_id')
+                        ->whereNull('related_type');
+                });
         })
-            ->where('slug', $path)
-            ->withoutGlobalScopes();
+            ->where('slug', $path);
 
         return $query->exists();
     }

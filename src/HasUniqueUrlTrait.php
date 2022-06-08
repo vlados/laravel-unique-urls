@@ -11,7 +11,7 @@ use Vlados\LaravelUniqueUrls\Models\Url;
  */
 trait HasUniqueUrlTrait
 {
-    abstract public function getUrlHandler();
+    abstract public function urlHandler();
 
     private bool $autoGenerateUrls = true;
 
@@ -38,16 +38,29 @@ trait HasUniqueUrlTrait
     public function generateUrl(): void
     {
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
-        $urls = [];
+        $createRecords = [];
+
+        $existing_languages = is_null($this->url) ? collect() : $this->url()->get()->keyBy('language');
         foreach (config('unique-urls.languages') as $lang) {
             $prefix = (config('app.fallback_locale') == $lang) ? '' : $lang . '/';
-            $new_url = $this->getUrlHandler();
+            $new_url = $this->urlHandler();
+
+            if (in_array($lang, $existing_languages->keys()->toArray())) {
+                // the url is existing for this model
+                if ($existing_languages[$lang]->slug !== $prefix.$unique_url) {
+                    // update the existing record if the url slug is different
+                    $existing_languages[$lang]["slug"] = $prefix.$unique_url;
+                    $existing_languages[$lang]->save();
+                }
+
+                continue;
+            }
             $new_url['language'] = $lang;
             $new_url['slug'] = $prefix . $unique_url;
-            $urls[] = $new_url;
+            $createRecords[] = $new_url;
         }
-        if (count($urls)) {
-            $this->url()->createMany($urls);
+        if (count($createRecords)) {
+            $this->url()->createMany($createRecords);
         }
     }
 
@@ -79,9 +92,7 @@ trait HasUniqueUrlTrait
      */
     public function getUrl($absolute = true): string
     {
-        throw_if(is_null($this->url), 'The model has no generated url');
-
-        $url = $this->url()->where('language', app()->getLocale())->first()->slug;
+        $url = $this->url()->where('language', app()->getLocale())->first()->slug ?? '';
 
         return $absolute ? url($url) : $url;
     }

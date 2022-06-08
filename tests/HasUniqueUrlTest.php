@@ -7,7 +7,7 @@ use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 //uses(RefreshDatabase::class);
 
-beforeEach(function() {
+beforeEach(function () {
     app()->setLocale('en');
 });
 

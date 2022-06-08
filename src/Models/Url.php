@@ -35,7 +35,7 @@ class Url extends Model
     protected static function booted()
     {
         static::updated(callback: function (Url $url) {
-            if (!$url->isDirty('slug')) {
+            if (! $url->isDirty('slug')) {
                 return;
             }
             Url::create([
@@ -69,7 +69,7 @@ class Url extends Model
      */
     public static function makeSlug(string $slug, Model $model): string
     {
-        if (!$slug) {
+        if (! $slug) {
             throw new Exception('Slug cannot be empty');
         }
         $where = $model->only(['id', 'type']);

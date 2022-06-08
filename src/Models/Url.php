@@ -101,7 +101,7 @@ class Url extends Model
                 $query->where('related_id', $whereModel['id'])
                     ->where('related_type', $whereModel['type']);
             })
-                ->orWhere(function ($query) use ($whereModel): void {
+                ->orWhere(function ($query): void {
                     $query->whereNull('related_id')
                         ->whereNull('related_type');
                 });

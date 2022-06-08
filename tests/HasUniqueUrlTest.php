@@ -7,6 +7,10 @@ use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 //uses(RefreshDatabase::class);
 
+beforeEach(function() {
+    app()->setLocale('en');
+});
+
 test('Check if it creates correct url', closure: function () {
     $model = TestModel::create(['name' => 'this is a test']);
     expect($model->getUrl())->toEqual(url('test-this-is-a-test'));

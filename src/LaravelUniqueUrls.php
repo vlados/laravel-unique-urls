@@ -18,6 +18,7 @@ class LaravelUniqueUrls
         if (method_exists($slugController, '__invoke') && $urlObj->getAttribute('method') === '') {
             // if it is livewire
             $request->route()->setParameter('arguments', $arguments);
+
             return \App::call([$slugController, '__invoke']);
         }
         $arguments['related'] = $urlObj->related;

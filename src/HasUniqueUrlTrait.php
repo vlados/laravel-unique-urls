@@ -12,6 +12,7 @@ use Vlados\LaravelUniqueUrls\Models\Url;
 trait HasUniqueUrlTrait
 {
     private bool $autoGenerateUrls = true;
+
     abstract public function urlHandler();
 
     /**

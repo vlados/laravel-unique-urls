@@ -31,13 +31,13 @@ class LaravelUniqueUrls
         } elseif (! isset($urlObj->method) && ! isset($arguments) && method_exists($urlObj->controller, 'index')) {
             $called = $slugController->index($request);
         }
-        if (isset($called) && false !== $called) {
+        if (isset($called) && $called !== false) {
             return $called;
         }
         abort('404');
     }
 
-    public function handleRedirect($request, $arguments = [])
+    public function handleRedirect(Request $request, $arguments = [])
     {
         return redirect($arguments['redirect_to'], config('unique-urls.redirect_http_code', 301));
     }

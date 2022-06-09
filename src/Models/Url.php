@@ -11,6 +11,7 @@ use Vlados\LaravelUniqueUrls\LaravelUniqueUrls;
 
 /**
  * Vlados\LaravelUniqueUrls\Models\Url.
+ *
  * @property string $slug
  * @property string $controller
  * @property string $method
@@ -31,26 +32,6 @@ class Url extends Model
     protected $casts = [
         'arguments' => 'json',
     ];
-
-    protected static function booted()
-    {
-        static::updated(callback: function (Url $url) {
-            if (! $url->isDirty('slug')) {
-                return;
-            }
-            Url::create([
-                'controller' => LaravelUniqueUrls::class,
-                'language' => $url->language,
-                'method' => 'handleRedirect',
-                'slug' => $url->getOriginal('slug'),
-                'arguments' => [
-                    'original_model' => $url->related_type,
-                    'original_id' => $url->related_id,
-                    'redirect_to' => $url->slug,
-                ],
-            ]);
-        });
-    }
 
     public function getRouteKeyName(): string
     {
@@ -80,6 +61,26 @@ class Url extends Model
         }
 
         throw new Exception('Error creating slug for ' . $model);
+    }
+
+    protected static function booted()
+    {
+        static::updated(callback: function (Url $url) {
+            if (! $url->isDirty('slug')) {
+                return;
+            }
+            Url::create([
+                'controller' => LaravelUniqueUrls::class,
+                'language' => $url->language,
+                'method' => 'handleRedirect',
+                'slug' => $url->getOriginal('slug'),
+                'arguments' => [
+                    'original_model' => $url->related_type,
+                    'original_id' => $url->related_id,
+                    'redirect_to' => $url->slug,
+                ],
+            ]);
+        });
     }
 
     private static function makeUniqueSlug($slug, $where)

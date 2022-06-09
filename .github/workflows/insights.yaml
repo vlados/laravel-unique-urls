@@ -1,0 +1,29 @@
+name: PHP Insights
+
+on: push
+
+jobs:
+  phpinsights:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        php: [8.0,8.1]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: dom, curl, libxml, mbstring, zip, json
+          coverage: none
+
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress --no-scripts -o
+
+      - name: Run PHP Insights
+        run: ./vendor/bin/phpinsights app --summary -v --min-quality=80 --min-complexity=80 --min-architecture=80 --min-style=80 --disable-security-check

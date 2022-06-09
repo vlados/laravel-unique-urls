@@ -25,6 +25,7 @@
         "itsgoingd/clockwork": "^5.1",
         "nunomaduro/collision": "^6.0",
         "nunomaduro/larastan": "^2.0.1",
+        "nunomaduro/phpinsights": "^2.4",
         "orchestra/testbench": "^7.0",
         "pestphp/pest": "^1.21",
         "pestphp/pest-plugin-faker": "^1.0",
@@ -56,7 +57,8 @@
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true
+            "phpstan/extension-installer": true,
+            "dealerdirect/phpcodesniffer-composer-installer": true
         }
     },
     "extra": {

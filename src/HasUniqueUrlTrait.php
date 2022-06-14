@@ -138,7 +138,6 @@ trait HasUniqueUrlTrait
         );
     }
 
-
     public function absoluteUrl(): Attribute
     {
         return Attribute::make(

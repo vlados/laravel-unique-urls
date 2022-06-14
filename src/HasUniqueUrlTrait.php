@@ -2,8 +2,12 @@
 
 namespace Vlados\LaravelUniqueUrls;
 
+use Exception;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Support\Str;
+use Throwable;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 /**
@@ -12,10 +16,11 @@ use Vlados\LaravelUniqueUrls\Models\Url;
 trait HasUniqueUrlTrait
 {
     private bool $autoGenerateUrls = true;
+
     abstract public function urlHandler();
 
     /**
-     * @throws \Exception
+     * @throws Exception
      */
     public function generateUrl(): void
     {
@@ -46,7 +51,7 @@ trait HasUniqueUrlTrait
         }
     }
 
-    public function url(): \Illuminate\Database\Eloquent\Relations\MorphOne
+    public function url(): MorphOne
     {
         return $this->morphOne(Url::class, 'related');
     }
@@ -56,9 +61,9 @@ trait HasUniqueUrlTrait
      *
      * @return string
      *
-     * @throws \Throwable
+     * @throws Throwable
      */
-    public function getUrl($absolute = true): string
+    private function getUrl($absolute = true): string
     {
         $url = $this->url()->where('language', app()->getLocale())->first()->slug ?? '';
 
@@ -119,5 +124,25 @@ trait HasUniqueUrlTrait
             ]);
             $url->save();
         });
+    }
+
+    /**
+     * Interact with the user's address.
+     *
+     * @return  Attribute
+     */
+    public function relativeUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->getUrl(false),
+        );
+    }
+
+
+    public function absoluteUrl(): Attribute
+    {
+        return Attribute::make(
+            get: fn ($value) => $this->getUrl(true),
+        )->shouldCache();
     }
 }

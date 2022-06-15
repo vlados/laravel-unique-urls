@@ -25,7 +25,6 @@ trait HasUniqueUrlTrait
         $this->append('absolute_url');
         $this->makeVisible('relative_url');
         $this->makeVisible('absolute_url');
-
     }
 
     /**

@@ -19,6 +19,15 @@ trait HasUniqueUrlTrait
 
     abstract public function urlHandler();
 
+    public function initializeHasUniqueUrlTrait(): void
+    {
+        $this->append('relative_url');
+        $this->append('absolute_url');
+        $this->makeVisible('relative_url');
+        $this->makeVisible('absolute_url');
+
+    }
+
     /**
      * @throws Exception
      */
@@ -131,18 +140,13 @@ trait HasUniqueUrlTrait
      *
      * @return  Attribute
      */
-    public function relativeUrl(): Attribute
+    public function getRelativeUrlAttribute(): string
     {
-        return Attribute::make(
-            get: fn ($value) => $this->getUrl(false),
-        );
+        return $this->getUrl(false);
     }
 
-
-    public function absoluteUrl(): Attribute
+    public function getAbsoluteUrlAttribute(): string
     {
-        return Attribute::make(
-            get: fn ($value) => $this->getUrl(true),
-        )->shouldCache();
+        return $this->getUrl(true);
     }
 }

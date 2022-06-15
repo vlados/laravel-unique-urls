@@ -22,14 +22,12 @@ class LaravelUniqueUrls
             return \App::call([$slugController, '__invoke']);
         }
         $arguments['related'] = $urlObj->related;
-        if (isset($urlObj->method, $arguments) && method_exists($urlObj->controller, $urlObj->method)) {
-            $called = $slugController->{$urlObj->method}($request, $arguments);
-        } elseif (isset($urlObj->method) && ! isset($arguments) && method_exists($urlObj->controller, $urlObj->method)) {
-            $called = $slugController->{$urlObj->method}($request);
-        } elseif (! isset($urlObj->method) && isset($arguments) && method_exists($urlObj->controller, 'show')) {
-            $called = $slugController->show($arguments);
-        } elseif (! isset($urlObj->method) && ! isset($arguments) && method_exists($urlObj->controller, 'index')) {
-            $called = $slugController->index($request);
+        if (method_exists($urlObj->controller, $urlObj->method)) {
+            $called = $slugController->{$urlObj->method}($request, $arguments ?? []);
+        } elseif (method_exists($urlObj->controller, 'show')) {
+            $called = $slugController->show($request, $arguments ?? []);
+        } elseif (method_exists($urlObj->controller, 'index')) {
+            $called = $slugController->index($request, $arguments ?? []);
         }
         if (isset($called) && $called !== false) {
             return $called;

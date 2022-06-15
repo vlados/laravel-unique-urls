@@ -26,4 +26,4 @@ jobs:
           composer install --no-interaction --no-progress --no-scripts -o
 
       - name: Run PHP Insights
-        run: ./vendor/bin/phpinsights app --summary -v --min-quality=80 --min-complexity=80 --min-architecture=80 --min-style=80 --disable-security-check
+        run: ./vendor/bin/phpinsights --config-path=phpinsights.config.php --summary analyse ./src

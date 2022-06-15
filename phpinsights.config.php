@@ -85,6 +85,7 @@ return [
         PropertyTypeHintSniff::class,
         ReturnTypeHintSniff::class,
         UselessFunctionDocCommentSniff::class,
+//        \NunoMaduro\PhpInsights\Domain\Metrics\Complexity\Complexity::class,
     ],
 
     'config' => [
@@ -92,7 +93,7 @@ return [
             'title' => 'The usage of private methods is not idiomatic in Laravel.',
         ],
         \NunoMaduro\PhpInsights\Domain\Insights\CyclomaticComplexityIsHigh::class => [
-            'maxComplexity' => 20,
+            'maxComplexity' => 10,
         ],
 
     ],
@@ -110,7 +111,7 @@ return [
 
     'requirements' => [
         'min-quality' => 80,
-        'min-complexity' => 80,
+        'min-complexity' => 65,
         'min-architecture' => 80,
         'min-style' => 80,
         'disable-security-check' => true,

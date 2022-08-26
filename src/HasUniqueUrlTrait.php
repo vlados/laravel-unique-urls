@@ -101,6 +101,10 @@ trait HasUniqueUrlTrait
                 $model->generateUrlOnUpdate();
             }
         });
+        static::deleting(function (Model $model) {
+            $model->url()->delete();
+
+        });
     }
 
     protected function generateUrlOnUpdate(): void
@@ -124,9 +128,15 @@ trait HasUniqueUrlTrait
      *
      * @throws Throwable
      */
-    private function getUrl($absolute = true): string
+    public function getUrl($absolute = true, $locale = ''): string
     {
-        $url = $this->url()->where('language', app()->getLocale())->first()->slug ?? '';
+        $locale = $locale ?: app()->getLocale();
+        if ($this->relationLoaded("url") && !is_null($this->url)) {
+            if($this->url->language == $locale) {
+                return $this->url->slug;
+            }
+        }
+        $url = $this->url()->where('language', $locale)->first()->slug ?? '';
 
         return $absolute ? url($url) : $url;
     }

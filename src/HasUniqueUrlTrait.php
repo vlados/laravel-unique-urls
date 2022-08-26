@@ -103,7 +103,6 @@ trait HasUniqueUrlTrait
         });
         static::deleting(function (Model $model) {
             $model->url()->delete();
-
         });
     }
 
@@ -124,15 +123,16 @@ trait HasUniqueUrlTrait
     /**
      * Returns the absolute url for the model.
      *
+     * @param bool $absolute Return absolute or relative url
+     * @param string $locale Set locale
      * @return string
      *
-     * @throws Throwable
      */
-    public function getUrl($absolute = true, $locale = ''): string
+    public function getUrl(bool $absolute = true, string $locale = ''): string
     {
         $locale = $locale ?: app()->getLocale();
-        if ($this->relationLoaded("url") && !is_null($this->url)) {
-            if($this->url->language == $locale) {
+        if ($this->relationLoaded("url") && ! is_null($this->url)) {
+            if ($this->url->language == $locale) {
                 return $this->url->slug;
             }
         }

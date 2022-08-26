@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v0.3.2  - 2022-08-26
+
+- Fix bug when using with filamentphp
+
 ## v0.3.1 - 2022-06-30
 
 add HasUniqueUrlAttributes

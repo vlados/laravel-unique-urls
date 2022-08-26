@@ -103,7 +103,6 @@ trait HasUniqueUrlTrait
         });
         static::deleting(function (Model $model) {
             $model->url()->delete();
-
         });
     }
 
@@ -131,8 +130,8 @@ trait HasUniqueUrlTrait
     public function getUrl($absolute = true, $locale = ''): string
     {
         $locale = $locale ?: app()->getLocale();
-        if ($this->relationLoaded("url") && !is_null($this->url)) {
-            if($this->url->language == $locale) {
+        if ($this->relationLoaded("url") && ! is_null($this->url)) {
+            if ($this->url->language == $locale) {
                 return $this->url->slug;
             }
         }

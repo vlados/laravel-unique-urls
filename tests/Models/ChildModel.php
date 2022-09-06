@@ -12,24 +12,24 @@ use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
  * Vlados\LaravelUniqueUrls\Tests\Models\TestModel.
  * @property string $name
  */
-class TestModel extends Model
+class ChildModel extends Model
 {
     use HasUniqueUrls;
     use HasTranslations;
 
-    protected $table = 'test_models';
+    protected $table = 'child_models';
     protected $guarded = [];
     public $timestamps = false;
     public $translatable = ['name'];
 
-    public function urlStrategy($language, $locale): string
+    public function parent(): \Illuminate\Database\Eloquent\Relations\BelongsTo
     {
-        return $language.'/parent/' . Str::slug($this->getTranslation('name', $language), '-', $language);
+        return $this->belongsTo(TestModel::class);
     }
 
-    public function asJson($value): bool|string
+    public function urlStrategy($language, $locale): string
     {
-        return json_encode($value, JSON_UNESCAPED_UNICODE);
+        return $this->parent->getSlug($language).'/' . Str::slug($this->getTranslation('name', $language), '-', $locale);
     }
 
     public function urlHandler(): array

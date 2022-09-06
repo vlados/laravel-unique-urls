@@ -9,6 +9,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Orchestra\Testbench\TestCase as Orchestra;
+use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsServiceProvider;
 
 class TestCase extends Orchestra
@@ -62,6 +63,11 @@ class TestCase extends Orchestra
             $table->increments('id');
             $table->string('name')->nullable();
         });
+        Schema::create('child_models', function (Blueprint $table) {
+            $table->increments('id');
+            $table->integer("parent_id");
+            $table->string('name')->nullable();
+        });
     }
 
     protected function getTempDirectory(): string
@@ -70,12 +76,12 @@ class TestCase extends Orchestra
     }
 
     /**
-     * @param \Illuminate\Foundation\Application $app
+     * @param Application $app
      */
     protected function setUpRoutes(Application $app)
     {
         Route::get('{urlObj}', [
-            \Vlados\LaravelUniqueUrls\LaravelUniqueUrls::class, 'handleRequest',
+            LaravelUniqueUrlsController::class, 'handleRequest',
         ])
             ->where('urlObj', '.*');
     }

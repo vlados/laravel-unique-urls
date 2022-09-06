@@ -87,6 +87,16 @@ test("Generate multiple parent ($generate) and child urls ($generate), total: ".
     expect($generatedTotal)->toEqual($generate * $generate);
 });
 
+test('Check if urls deleted after model deleted', function () {
+    $model = TestModel::create(['name' => 'this is a test']);
+    $model->load(['urls']);
+    $urls = $model->urls;
+    $model->delete();
+    $urls->each(function ($item) {
+        expect(\Vlados\LaravelUniqueUrls\Models\Url::find($item->id))->toBeNull();
+    });
+});
+
 //test('Check if redirect after update', closure: function () {
 //    $model = TestModel::create(['name' => 'this is a test']);
 //    expect($model->absolute_url)->toEqual(url('test-this-is-a-test'));

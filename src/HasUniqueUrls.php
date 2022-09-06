@@ -9,19 +9,16 @@ use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 /**
- * @property bool $autoGenerateUrls
+ * @method void generateUrl()
+ * @method urlStrategy()
+ * @method isAutoGenerateUrls()
  */
-trait HasUniqueUrlTrait
+trait HasUniqueUrls
 {
+    use HasUniqueUrlAttributes;
     private bool $autoGenerateUrls = true;
 
     abstract public function urlHandler();
-
-    public function initializeHasUniqueUrlTrait(): void
-    {
-        $this->append('relative_url');
-        $this->makeVisible('relative_url');
-    }
 
     /**
      * @throws Exception
@@ -63,27 +60,12 @@ trait HasUniqueUrlTrait
 
     public function urlStrategy($language, $locale): string
     {
-        return Str::slug($this->getAttribute('name'));
+        return Str::slug($this->getTranslation('name', $language), '-', $locale);
     }
 
     public function isAutoGenerateUrls(): bool
     {
         return $this->autoGenerateUrls;
-    }
-
-    public function setAutoGenerateUrls(bool $autoGenerateUrls): void
-    {
-        $this->autoGenerateUrls = $autoGenerateUrls;
-    }
-
-    public function getRelativeUrlAttribute(): string
-    {
-        return $this->getSlug(null, true);
-    }
-
-    public function getAbsoluteUrlAttribute(): string
-    {
-        return $this->getSlug(null, false);
     }
 
     protected static function bootHasUniqueUrlTrait(): void
@@ -116,26 +98,5 @@ trait HasUniqueUrlTrait
                 $url->save();
             }
         });
-    }
-
-    /**
-     * Returns the absolute url for the model.
-     *
-     * @param string|null $language
-     * @param bool $relative Return absolute or relative url
-     * @return string
-     */
-    public function getSlug(?string $language = '', bool $relative = true): string
-    {
-        $language = $language ?: app()->getLocale();
-        if ($this->urls->isEmpty()) {
-            $this->load('urls');
-        }
-        $url = $this->urls->where('language', $language)->first();
-        if (is_null($url)) {
-            dd("error", $this->urls, $language);
-        }
-
-        return $relative ? $url->slug : url($url->slug);
     }
 }

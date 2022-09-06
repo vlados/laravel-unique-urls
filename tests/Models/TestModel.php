@@ -5,7 +5,7 @@ namespace Vlados\LaravelUniqueUrls\Tests\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
-use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
 
 /**
@@ -14,7 +14,7 @@ use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
  */
 class TestModel extends Model
 {
-    use HasUniqueUrlTrait;
+    use HasUniqueUrls;
     use HasTranslations;
 
     protected $table = 'test_models';

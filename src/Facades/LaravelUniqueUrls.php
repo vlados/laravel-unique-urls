@@ -5,7 +5,7 @@ namespace Vlados\LaravelUniqueUrls\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \Vlados\LaravelUniqueUrls\LaravelUniqueUrls
+ * @see \Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController
  */
 class LaravelUniqueUrls extends Facade
 {

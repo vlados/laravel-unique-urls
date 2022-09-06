@@ -1,8 +1,6 @@
 <?php
 
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
+use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 //uses(RefreshDatabase::class);
@@ -13,31 +11,31 @@ beforeEach(function () {
 
 test('Check if it creates correct url', closure: function () {
     $model = TestModel::create(['name' => 'this is a test']);
-    expect($model->absolute_url)->toEqual(url('test-this-is-a-test'));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
 });
 
 test('Check if the url for BG language is correct', closure: function () {
     $model = TestModel::create(['name' => 'this is a test']);
     app()->setLocale('bg');
-    expect($model->absolute_url)->toEqual(url('bg/test-this-is-a-test'));
+    expect($model->absolute_url)->toEqual(url('bg/parent/this-is-a-test'));
 });
 
 
 test('Check if suffix is added for equal 3 records', closure: function () {
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(1);
-    expect($model->absolute_url)->toEqual(url('test-multiple-records'));
-    expect($model->relative_url)->toEqual('test-multiple-records');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records'));
+    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records');
 
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(2);
-    expect($model->absolute_url)->toEqual(url('test-multiple-records_1'));
-    expect($model->relative_url)->toEqual('test-multiple-records_1');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records_1'));
+    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records_1');
 
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(3);
-    expect($model->absolute_url)->toEqual(url('test-multiple-records_2'));
-    expect($model->relative_url)->toEqual('test-multiple-records_2');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records_2'));
+    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records_2');
 });
 
 
@@ -52,8 +50,41 @@ test('Generate urls after import', closure: function () {
     }
     TestModel::all()->each(callback: function (TestModel $model) {
         $model->generateUrl();
-        expect($model->relative_url)->toEqual('test-' . Str::slug($model->getAttribute('name')));
+        expect($model->relative_url)
+            ->toEqual(app()->getLocale().'/parent/' . Str::slug($model->getAttribute('name')));
     });
+});
+
+$generate = 10;
+test("Generate multiple parent ($generate) and child urls ($generate), total: ".($generate * $generate), function () use ($generate) {
+    $generatedTotal = 0;
+    for ($i = 0; $i < $generate; $i++) {
+        $translations = [];
+        foreach (config('unique-urls.languages') as $locale => $lang) {
+            $translations[$lang] = \Pest\Faker\faker($locale)->company().$i;
+        }
+        $parentModel = TestModel::create([
+            'name' => $translations,
+        ]);
+        for ($b = 0; $b < $generate; $b++) {
+            $translations = [];
+            foreach (config('unique-urls.languages') as $locale => $lang) {
+                $translations[$lang] = \Pest\Faker\faker($locale)->company().$b;
+            }
+            $childModel = ChildModel::create([
+                'parent_id' => $parentModel->id,
+                'name' => $translations,
+            ]);
+            $generatedTotal++;
+            foreach (config('unique-urls.languages') as $locale => $lang) {
+                expect($childModel->getSlug($lang))
+                    ->toEqual($parentModel->getSlug($lang)
+                        . '/' .
+                        Str::slug($childModel->getTranslation('name', $lang), '-', $locale));
+            }
+        }
+    }
+    expect($generatedTotal)->toEqual($generate * $generate);
 });
 
 //test('Check if redirect after update', closure: function () {

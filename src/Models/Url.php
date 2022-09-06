@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
-use Vlados\LaravelUniqueUrls\LaravelUniqueUrls;
+use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 
 /**
  * Vlados\LaravelUniqueUrls\Models\Url.
@@ -70,7 +70,7 @@ class Url extends Model
                 return;
             }
             Url::create([
-                'controller' => LaravelUniqueUrls::class,
+                'controller' => LaravelUniqueUrlsController::class,
                 'language' => $url->language,
                 'method' => 'handleRedirect',
                 'slug' => $url->getOriginal('slug'),

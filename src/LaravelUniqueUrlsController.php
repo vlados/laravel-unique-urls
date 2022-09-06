@@ -2,10 +2,14 @@
 
 namespace Vlados\LaravelUniqueUrls;
 
+use App;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Routing\Redirector;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
-class LaravelUniqueUrls
+class LaravelUniqueUrlsController
 {
     public function handleRequest(Url $urlObj, Request $request)
     {
@@ -19,7 +23,7 @@ class LaravelUniqueUrls
             // if it is livewire
             $request->route()->setParameter('arguments', $arguments);
 
-            return \App::call([$slugController, '__invoke']);
+            return App::call([$slugController, '__invoke']);
         }
         $arguments['related'] = $urlObj->related;
         if (method_exists($urlObj->controller, $urlObj->method)) {
@@ -35,7 +39,7 @@ class LaravelUniqueUrls
         abort('404');
     }
 
-    public function handleRedirect(Request $request, $arguments = [])
+    public function handleRedirect(Request $request, $arguments = []): Redirector|Application|RedirectResponse
     {
         return redirect($arguments['redirect_to'], config('unique-urls.redirect_http_code', 301));
     }

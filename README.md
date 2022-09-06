@@ -13,7 +13,7 @@ Laravel
 - [Installation](#installation)
 - [Usage](#usage)
     - [Configuration](#configuration)
-    - [Routes]()
+    - [Routes](#routes)
     - [Prepare your model](#prepare-your-model)
     - [Disable auto creating urls](#batch-import)
     - [Livewire](#livewire)
@@ -51,21 +51,25 @@ php artisan vendor:publish --tag="laravel-unique-urls-config"
 There will create `unique-urls.php` with:
 ```php
 return [
-    // Language versions of the urls
-    // 
-    'languages' => ['bg','en'],
+    // Locale => $language
+    'languages' => [
+        'bg_BG' => 'bg',
+        'en_US' => 'en',
+        'de_DE' => 'de',
+    ],
     'redirect_http_code' => 301,
 ];
 ```
 
 ### Prepare your model
 In your Model add these methods:
+
 ```php
 class MyModel extends Model
 {
-    use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+    use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-    public function urlStrategy(): string
+    public function urlStrategy($language,$locale): string
     {
         return Str::slug($this->getAttribute('name'));
     }
@@ -90,10 +94,11 @@ public function view(Request $request, $arguments = [])
     dd($arguments);
 }
 ```
-
+### Routes
 And last, add this line at the end of your `routes/web.php`
+
 ```php
-Route::get('{urlObj}', [\Vlados\LaravelUniqueUrls\LaravelUniqueUrls::class, 'handleRequest'])->where('urlObj', '.*');
+Route::get('{urlObj}', [\Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController::class, 'handleRequest'])->where('urlObj', '.*');
 ```
 ### Batch import
 If for example you have category tree and you need to import all the data before creating the urls, you can disable the automatic generation of the url on model creation 
@@ -158,8 +163,37 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
+### Semantic Commit Messages
 
+See how a minor change to your commit message style can make you a better programmer.
+Format: `<type>(<scope>): <subject>`
+
+`<scope>` is optional
+
+```
+feat: add hat wobble
+^--^  ^------------^
+|     |
+|     +-> Summary in present tense.
+|
++-------> Type: chore, docs, feat, fix, refactor, style, or test.
+```
+
+More Examples:
+
+- `feat`: (new feature for the user, not a new feature for build script)
+- `fix`: (bug fix for the user, not a fix to a build script)
+- `docs`: (changes to the documentation)
+- `style`: (formatting, missing semi colons, etc; no production code change)
+- `refactor`: (refactoring production code, eg. renaming a variable)
+- `test`: (adding missing tests, refactoring tests; no production code change)
+- `chore`: (updating grunt tasks etc; no production code change)
+
+References:
+
+- https://www.conventionalcommits.org/
+- https://seesparkbox.com/foundry/semantic_commit_messages
+- http://karma-runner.github.io/1.0/dev/git-commit-msg.html
 ## Security Vulnerabilities
 
 Please review [our security policy](../../security/policy) on how to report security vulnerabilities.

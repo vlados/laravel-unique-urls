@@ -4,9 +4,8 @@ namespace Vlados\LaravelUniqueUrls;
 
 use Exception;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\MorphOne;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
-use Throwable;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 /**
@@ -21,9 +20,7 @@ trait HasUniqueUrlTrait
     public function initializeHasUniqueUrlTrait(): void
     {
         $this->append('relative_url');
-        $this->append('absolute_url');
         $this->makeVisible('relative_url');
-        $this->makeVisible('absolute_url');
     }
 
     /**
@@ -31,39 +28,40 @@ trait HasUniqueUrlTrait
      */
     public function generateUrl(): void
     {
-        $unique_url = Url::makeSlug($this->urlStrategy(), $this);
+        $this->loadMissing('urls');
         $createRecords = [];
 
-        $existing_languages = is_null($this->url) ? collect() : $this->url()->get()->keyBy('language');
-        foreach (config('unique-urls.languages') as $lang) {
-            $prefix = config('app.fallback_locale') === $lang ? '' : $lang . '/';
+        $existing_languages = is_null($this->urls) ? collect() : $this->urls()->get()->keyBy('language');
+        foreach (config('unique-urls.languages') as $locale => $lang) {
+            $unique_url = Url::makeSlug($this->urlStrategy($lang, $locale), $this);
+
             $new_url = $this->urlHandler();
 
             if (in_array($lang, $existing_languages->keys()->toArray())) {
                 // the url is existing for this model
-                if ($existing_languages[$lang]->slug !== $prefix . $unique_url) {
+                if ($existing_languages[$lang]->slug !== $unique_url) {
                     // update the existing record if the url slug is different
-                    $existing_languages[$lang]['slug'] = $prefix . $unique_url;
+                    $existing_languages[$lang]['slug'] = $unique_url;
                     $existing_languages[$lang]->save();
                 }
 
                 continue;
             }
             $new_url['language'] = $lang;
-            $new_url['slug'] = $prefix . $unique_url;
+            $new_url['slug'] = $unique_url;
             $createRecords[] = $new_url;
         }
         if (count($createRecords)) {
-            $this->url()->createMany($createRecords);
+            $this->urls()->createMany($createRecords);
         }
     }
 
-    public function url(): MorphOne
+    public function urls(): MorphMany
     {
-        return $this->morphOne(Url::class, 'related');
+        return $this->morphMany(Url::class, 'related');
     }
 
-    public function urlStrategy(): string
+    public function urlStrategy($language, $locale): string
     {
         return Str::slug($this->getAttribute('name'));
     }
@@ -80,12 +78,12 @@ trait HasUniqueUrlTrait
 
     public function getRelativeUrlAttribute(): string
     {
-        return $this->getUrl(false);
+        return $this->getSlug(null, true);
     }
 
     public function getAbsoluteUrlAttribute(): string
     {
-        return $this->getUrl(true);
+        return $this->getSlug(null, false);
     }
 
     protected static function bootHasUniqueUrlTrait(): void
@@ -102,14 +100,14 @@ trait HasUniqueUrlTrait
             }
         });
         static::deleting(function (Model $model) {
-            $model->url()->delete();
+            $model->urls()->delete();
         });
     }
 
     protected function generateUrlOnUpdate(): void
     {
         $unique_url = Url::makeSlug($this->urlStrategy(), $this);
-        $this->url()->get()->each(function (Url $url) use ($unique_url) {
+        $this->urls()->get()->each(function (Url $url) use ($unique_url) {
             $prefix = config('app.fallback_locale') === $url->getAttribute('language') ? '' : $url->getAttribute('language') . '/';
             if ($url->getAttribute('slug') !== $prefix . $unique_url) {
                 $url->update([
@@ -123,21 +121,21 @@ trait HasUniqueUrlTrait
     /**
      * Returns the absolute url for the model.
      *
-     * @param bool $absolute Return absolute or relative url
-     * @param string $locale Set locale
+     * @param string|null $language
+     * @param bool $relative Return absolute or relative url
      * @return string
-     *
      */
-    public function getUrl(bool $absolute = true, string $locale = ''): string
+    public function getSlug(?string $language = '', bool $relative = true): string
     {
-        $locale = $locale ?: app()->getLocale();
-        if ($this->relationLoaded("url") && ! is_null($this->url)) {
-            if ($this->url->language == $locale) {
-                return $this->url->slug;
-            }
+        $language = $language ?: app()->getLocale();
+        if ($this->urls->isEmpty()) {
+            $this->load('urls');
         }
-        $url = $this->url()->where('language', $locale)->first()->slug ?? '';
+        $url = $this->urls->where('language', $language)->first();
+        if (is_null($url)) {
+            dd("error", $this->urls, $language);
+        }
 
-        return $absolute ? url($url) : $url;
+        return $relative ? $url->slug : url($url->slug);
     }
 }

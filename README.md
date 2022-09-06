@@ -92,8 +92,9 @@ public function view(Request $request, $arguments = [])
 ```
 
 And last, add this line at the end of your `routes/web.php`
+
 ```php
-Route::get('{urlObj}', [\Vlados\LaravelUniqueUrls\LaravelUniqueUrls::class, 'handleRequest'])->where('urlObj', '.*');
+Route::get('{urlObj}', [\Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController::class, 'handleRequest'])->where('urlObj', '.*');
 ```
 ### Batch import
 If for example you have category tree and you need to import all the data before creating the urls, you can disable the automatic generation of the url on model creation 

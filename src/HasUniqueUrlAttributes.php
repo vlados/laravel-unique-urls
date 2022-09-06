@@ -2,12 +2,6 @@
 
 namespace Vlados\LaravelUniqueUrls;
 
-/**
- * @property-read string $relative_url
- * @property-read string $absolute_url
- *
- * @method string getSlug()
- */
 trait HasUniqueUrlAttributes
 {
     public function initializeHasUniqueUrlAttributes(): void

@@ -43,7 +43,7 @@ test('Generate urls after import', closure: function () {
     $generate = 10;
     for ($i = 0;$i < $generate; $i++) {
         $model = new TestModel();
-        $model->setAutoGenerateUrls(false);
+        $model->disableGeneratingUrlsOnCreate();
         $model->name = \Pest\Faker\faker()->text(20).time();
         $model->save();
         expect($model->url)->toBeNull();
@@ -55,7 +55,7 @@ test('Generate urls after import', closure: function () {
     });
 });
 
-$generate = 10;
+$generate = 1;
 test("Generate multiple parent ($generate) and child urls ($generate), total: ".($generate * $generate), function () use ($generate) {
     $generatedTotal = 0;
     for ($i = 0; $i < $generate; $i++) {

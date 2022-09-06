@@ -86,5 +86,4 @@ trait HasUniqueUrls
             $model->urls()->delete();
         });
     }
-
 }

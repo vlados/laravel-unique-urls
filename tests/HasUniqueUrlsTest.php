@@ -89,12 +89,27 @@ test("Generate multiple parent ($generate) and child urls ($generate), total: ".
 
 test('Check if urls deleted after model deleted', function () {
     $model = TestModel::create(['name' => 'this is a test']);
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
+    $newName = \Pest\Faker\faker()->text;
+    $model->name = $newName;
+    $model->save();
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/'.Str::slug($newName)));
     $model->load(['urls']);
+//    dd($model->relative_url);
     $urls = $model->urls;
     $model->delete();
     $urls->each(function ($item) {
         expect(\Vlados\LaravelUniqueUrls\Models\Url::find($item->id))->toBeNull();
     });
+});
+
+test('Check if url is updated correctly', function () {
+    $model = TestModel::create(['name' => 'this is a test']);
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
+    $newName = \Pest\Faker\faker()->text;
+    $model->name = $newName;
+    $model->save();
+    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/'.Str::slug($newName)));
 });
 
 //test('Check if redirect after update', closure: function () {

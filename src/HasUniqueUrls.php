@@ -8,11 +8,6 @@ use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
-/**
- * @method void generateUrl()
- * @method urlStrategy()
- * @method isAutoGenerateUrls()
- */
 trait HasUniqueUrls
 {
     use HasUniqueUrlAttributes;
@@ -68,7 +63,12 @@ trait HasUniqueUrls
         return $this->autoGenerateUrls;
     }
 
-    protected static function bootHasUniqueUrlTrait(): void
+    public function disableGeneratingUrlsOnCreate(): void
+    {
+        $this->autoGenerateUrls = false;
+    }
+
+    protected static function bootHasUniqueUrls(): void
     {
         static::created(function (Model $model) {
             if ($model->isAutoGenerateUrls() === true) {

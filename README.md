@@ -63,10 +63,11 @@ return [
 
 ### Prepare your model
 In your Model add these methods:
+
 ```php
 class MyModel extends Model
 {
-    use Vlados\LaravelUniqueUrls\HasUniqueUrlTrait;
+    use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
     public function urlStrategy($language,$locale): string
     {

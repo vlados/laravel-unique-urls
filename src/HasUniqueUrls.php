@@ -11,6 +11,7 @@ use Vlados\LaravelUniqueUrls\Models\Url;
 trait HasUniqueUrls
 {
     use HasUniqueUrlAttributes;
+
     private bool $autoGenerateUrls = true;
 
     abstract public function urlHandler();
@@ -20,16 +21,16 @@ trait HasUniqueUrls
      */
     public function generateUrl(): void
     {
-        $this->loadMissing('urls');
+//        $this->loadMissing(['urls']);
         $createRecords = [];
 
-        $existing_languages = is_null($this->urls) ? collect() : $this->urls()->get()->keyBy('language');
+        $existing_languages = $this->urls->keyBy('language');
         foreach (config('unique-urls.languages') as $locale => $lang) {
             $unique_url = Url::makeSlug($this->urlStrategy($lang, $locale), $this);
 
             $new_url = $this->urlHandler();
 
-            if (in_array($lang, $existing_languages->keys()->toArray())) {
+            if ($existing_languages->has($lang)) {
                 // the url is existing for this model
                 if ($existing_languages[$lang]->slug !== $unique_url) {
                     // update the existing record if the url slug is different
@@ -78,7 +79,7 @@ trait HasUniqueUrls
 
         static::updated(function (Model $model) {
             if ($model->isAutoGenerateUrls() === true) {
-                $model->generateUrlOnUpdate();
+                $model->generateUrl();
             }
         });
         static::deleting(function (Model $model) {
@@ -86,17 +87,4 @@ trait HasUniqueUrls
         });
     }
 
-    protected function generateUrlOnUpdate(): void
-    {
-        $unique_url = Url::makeSlug($this->urlStrategy(), $this);
-        $this->urls()->get()->each(function (Url $url) use ($unique_url) {
-            $prefix = config('app.fallback_locale') === $url->getAttribute('language') ? '' : $url->getAttribute('language') . '/';
-            if ($url->getAttribute('slug') !== $prefix . $unique_url) {
-                $url->update([
-                    'slug' => $prefix . $unique_url,
-                ]);
-                $url->save();
-            }
-        });
-    }
 }

@@ -22,9 +22,9 @@ class TestModel extends Model
     public $timestamps = false;
     public $translatable = ['name'];
 
-    public function urlStrategy($language,$locale): string
+    public function urlStrategy($language, $locale): string
     {
-        return $language.'/parent/' . Str::slug($this->getTranslation('name',$language),'-',$language);
+        return $language.'/parent/' . Str::slug($this->getTranslation('name', $language), '-', $language);
     }
 
     public function asJson($value): bool|string

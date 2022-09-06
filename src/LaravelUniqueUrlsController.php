@@ -5,7 +5,7 @@ namespace Vlados\LaravelUniqueUrls;
 use Illuminate\Http\Request;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
-class LaravelUniqueUrls
+class LaravelUniqueUrlsController
 {
     public function handleRequest(Url $urlObj, Request $request)
     {

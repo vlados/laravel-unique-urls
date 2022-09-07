@@ -1,5 +1,6 @@
 <?php
 
+use Vlados\LaravelUniqueUrls\Models\Url;
 use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
@@ -110,6 +111,18 @@ test('Check if url is updated correctly', function () {
     $model->name = $newName;
     $model->save();
     expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/'.Str::slug($newName)));
+});
+
+test('Check if urls are created when updating, if for some reason they are deleted', function () {
+    $model = TestModel::create(['name' => 'this is a test']);
+    $model->urls()->delete();
+    $newName = \Pest\Faker\faker()->text;
+    $model->name = $newName;
+    $model->save();
+    $model->load(['urls']);
+    $model->urls->each(function ($item) {
+        expect(\Vlados\LaravelUniqueUrls\Models\Url::find($item->id))->toBeInstanceOf(Url::class);
+    });
 });
 
 //test('Check if redirect after update', closure: function () {

@@ -7,6 +7,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 class LaravelUniqueUrlsController
@@ -27,7 +28,7 @@ class LaravelUniqueUrlsController
         }
         $arguments['related'] = $urlObj->related;
         if (method_exists($urlObj->controller, $urlObj->method)) {
-            $called = $slugController->{$urlObj->method}($request, $arguments ?? []);
+            $called = $slugController->{$urlObj->method}($request, $arguments ?? [], $urlObj);
         } elseif (method_exists($urlObj->controller, 'show')) {
             $called = $slugController->show($request, $arguments ?? []);
         } elseif (method_exists($urlObj->controller, 'index')) {
@@ -39,8 +40,22 @@ class LaravelUniqueUrlsController
         abort('404');
     }
 
-    public function handleRedirect(Request $request, $arguments = []): Redirector|Application|RedirectResponse
+    /**
+     * @param Request $request
+     * @param array $arguments
+     * @param Url $originalUrl
+     * @return Redirector|RedirectResponse|Application
+     */
+    public function handleRedirect(Request $request, array $arguments = [], Url $originalUrl): Redirector|Application|RedirectResponse
     {
-        return redirect($arguments['redirect_to'], config('unique-urls.redirect_http_code', 301));
+        $url = Url::where("related_type", $arguments["original_model"])
+            ->where("related_id", $arguments["original_id"])
+            ->where("language", $originalUrl->language)
+            ->first();
+        if ($url) {
+            return redirect(to: $url->slug, status: config('unique-urls.redirect_http_code', 301));
+        } else {
+            return abort(404);
+        }
     }
 }

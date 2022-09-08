@@ -21,7 +21,7 @@ trait HasUniqueUrls
      */
     public function generateUrl(): void
     {
-//        $this->loadMissing(['urls']);
+        $this->load('urls');
         $createRecords = [];
 
         $existing_languages = $this->urls->keyBy('language');

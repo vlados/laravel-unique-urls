@@ -3,14 +3,15 @@
 namespace Vlados\LaravelUniqueUrls\Tests\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Spatie\Translatable\HasTranslations;
 use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
 
 /**
- * Vlados\LaravelUniqueUrls\Tests\Models\TestModel.
  * @property string $name
+ * @property Collection $urls
  */
 class TestModel extends Model
 {

@@ -7,7 +7,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 class LaravelUniqueUrlsController

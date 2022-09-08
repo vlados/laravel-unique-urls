@@ -1,68 +1,73 @@
 <?php
 
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 use Vlados\LaravelUniqueUrls\Models\Url;
 use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
-//uses(RefreshDatabase::class);
-
 beforeEach(function () {
     app()->setLocale('en');
+//    uses(RefreshDatabase::class);
 });
 
-test('Check if it creates correct url', closure: function () {
+afterAll(function () {
+});
+
+$generate = 10;
+
+test('1. Check if it creates correct url', closure: function () {
     $model = TestModel::create(['name' => 'this is a test']);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/this-is-a-test'));
 });
 
-test('Check if the url for BG language is correct', closure: function () {
+test('2. Check if the url for BG language is correct', closure: function () {
     $model = TestModel::create(['name' => 'this is a test']);
     app()->setLocale('bg');
     expect($model->absolute_url)->toEqual(url('bg/parent/this-is-a-test'));
 });
 
 
-test('Check if suffix is added for equal 3 records', closure: function () {
+test('3. Check if suffix is added for equal 3 records', closure: function () {
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(1);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records'));
-    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/multiple-records'));
+    expect($model->relative_url)->toEqual(app()->getLocale() . '/parent/multiple-records');
 
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(2);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records_1'));
-    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records_1');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/multiple-records_1'));
+    expect($model->relative_url)->toEqual(app()->getLocale() . '/parent/multiple-records_1');
 
     $model = TestModel::create(['name' => 'multiple records']);
     expect($model->id)->toEqual(3);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/multiple-records_2'));
-    expect($model->relative_url)->toEqual(app()->getLocale().'/parent/multiple-records_2');
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/multiple-records_2'));
+    expect($model->relative_url)->toEqual(app()->getLocale() . '/parent/multiple-records_2');
 });
 
 
-test('Generate urls after import', closure: function () {
+test('4. Generate urls after import', closure: function () {
     $generate = 10;
-    for ($i = 0;$i < $generate; $i++) {
+    for ($i = 0; $i < $generate; $i++) {
         $model = new TestModel();
         $model->disableGeneratingUrlsOnCreate();
-        $model->name = \Pest\Faker\faker()->text(20).time();
+        $model->name = \Pest\Faker\faker()->text(20) . time();
         $model->save();
-        expect($model->url)->toBeNull();
+        expect($model->urls)->toBeNull();
     }
     TestModel::all()->each(callback: function (TestModel $model) {
         $model->generateUrl();
         expect($model->relative_url)
-            ->toEqual(app()->getLocale().'/parent/' . Str::slug($model->getAttribute('name')));
+            ->toEqual(app()->getLocale() . '/parent/' . Str::slug($model->getAttribute('name')));
     });
 });
 
-$generate = 1;
-test("Generate multiple parent ($generate) and child urls ($generate), total: ".($generate * $generate), function () use ($generate) {
+test("5. Generate multiple parent ($generate) and child urls ($generate), total: " . ($generate * $generate), function () use ($generate) {
     $generatedTotal = 0;
     for ($i = 0; $i < $generate; $i++) {
         $translations = [];
         foreach (config('unique-urls.languages') as $locale => $lang) {
-            $translations[$lang] = \Pest\Faker\faker($locale)->company().$i;
+            $translations[$lang] = \Pest\Faker\faker($locale)->company() . $i;
         }
         $parentModel = TestModel::create([
             'name' => $translations,
@@ -70,7 +75,7 @@ test("Generate multiple parent ($generate) and child urls ($generate), total: ".
         for ($b = 0; $b < $generate; $b++) {
             $translations = [];
             foreach (config('unique-urls.languages') as $locale => $lang) {
-                $translations[$lang] = \Pest\Faker\faker($locale)->company().$b;
+                $translations[$lang] = \Pest\Faker\faker($locale)->company() . $b;
             }
             $childModel = ChildModel::create([
                 'parent_id' => $parentModel->id,
@@ -88,13 +93,13 @@ test("Generate multiple parent ($generate) and child urls ($generate), total: ".
     expect($generatedTotal)->toEqual($generate * $generate);
 });
 
-test('Check if urls deleted after model deleted', function () {
+test('6. Check if urls deleted after model deleted', function () {
     $model = TestModel::create(['name' => 'this is a test']);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/this-is-a-test'));
     $newName = \Pest\Faker\faker()->text;
     $model->name = $newName;
     $model->save();
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/'.Str::slug($newName)));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/' . Str::slug($newName)));
     $model->load(['urls']);
 //    dd($model->relative_url);
     $urls = $model->urls;
@@ -104,16 +109,16 @@ test('Check if urls deleted after model deleted', function () {
     });
 });
 
-test('Check if url is updated correctly', function () {
+test('7. Check if url is updated correctly', function () {
     $model = TestModel::create(['name' => 'this is a test']);
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/this-is-a-test'));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/this-is-a-test'));
     $newName = \Pest\Faker\faker()->text;
     $model->name = $newName;
     $model->save();
-    expect($model->absolute_url)->toEqual(url(app()->getLocale().'/parent/'.Str::slug($newName)));
+    expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/' . Str::slug($newName)));
 });
 
-test('Check if urls are created when updating, if for some reason they are deleted', function () {
+test('8. Check if urls are created when updating, if for some reason they are deleted', function () {
     $model = TestModel::create(['name' => 'this is a test']);
     $model->urls()->delete();
     $newName = \Pest\Faker\faker()->text;
@@ -125,14 +130,34 @@ test('Check if urls are created when updating, if for some reason they are delet
     });
 });
 
-//test('Check if redirect after update', closure: function () {
-//    $model = TestModel::create(['name' => 'this is a test']);
-//    expect($model->absolute_url)->toEqual(url('test-this-is-a-test'));
-//    $model->update(['name' => 'this is a second test']);
-//    expect($model->relative_url)->toEqual(url('test-this-is-a-second-test'));
-//
-//    $request = Request::create('test-this-is-a-second-test');
-//
-////    expect($response->getStatusCode())->toEqual(301);
-//
-//});
+test('9. Check if after update the old url is redirected', function () {
+    $model = TestModel::create(['name' => 'test']);
+    $old_urls = $model->urls()->get();
+    $model->name = 'test2';
+    $model->save();
+    $old_urls->each(function (Url $item) {
+        $url = Url::where("slug", $item->slug)->where("language", $item->language)->first();
+        expect($url->controller)->toEqual(LaravelUniqueUrlsController::class)
+            ->and($url->method)->toEqual("handleRedirect");
+    });
+});
+
+test('10. Check if visitor is redirected only ones, if the model have multiple redirects', function () {
+    $model = TestModel::create(['name' => 'test']);
+    $urls = [[$model->name => $model->relative_url]];
+    for ($i = 1; $i < 10; $i++) {
+        $model->name = 'test'.$i;
+        $model->save();
+        if ($i != 9) {
+            $urls[] = [$model->name => $model->relative_url];
+        }
+    }
+
+    foreach ($urls as $item) {
+        $url = Url::where("slug", $item)->where("language", app()->getLocale())->first();
+        $request = app(LaravelUniqueUrlsController::class)
+            ->handleRequest($url, new Illuminate\Http\Request());
+        expect($request->getStatusCode())->toEqual(301)
+            ->and($request->getTargetUrl())->toEqual(url($model->relative_url));
+    }
+});

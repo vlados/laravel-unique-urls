@@ -9,8 +9,8 @@ use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
 
 /**
- * Vlados\LaravelUniqueUrls\Tests\Models\TestModel.
  * @property string $name
+ * @property int $parent_id
  */
 class ChildModel extends Model
 {

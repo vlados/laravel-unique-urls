@@ -21,8 +21,11 @@ Laravel
 
 ### Goals:
 - When create or update a model to generate a unique url based on urlStrategy() function inside each model
+- Possibility to have different urls for the different languages (not only a prefix in the beginning)
 - If the url exists to create a new url with suffix _1, _2, etc.
 - If we update the model to create a redirect from the old to the new url
+- If there is a multiple redirects to redirect only to the last one
+- Possibility to have an url depending on relations (category-name/product-name)
 
 
 ## Installation
@@ -71,7 +74,7 @@ class MyModel extends Model
 
     public function urlStrategy($language,$locale): string
     {
-        return Str::slug($this->getAttribute('name'));
+        return Str::slug($this->getAttribute('name'),"-",$locale);
     }
     
     public function urlHandler(): array
@@ -115,6 +118,15 @@ YourModel::all()->each(function (YourModel $model) {
     $model->generateUrl();
 });
 ```
+
+or if you want to disable it on the go, use
+```php
+$model = new TestModel();
+$model->disableGeneratingUrlsOnCreate();
+$model->name = "Test";
+$model->save();
+```
+
 ### Livewire
 To use [Livewire full-page component](https://laravel-livewire.com/docs/2.x/rendering-components#page-components) to handle the request, first set in `urlHandler()` function in your model:
 ```php
@@ -150,6 +162,20 @@ class LivewireComponentExample extends Component
 }
 
 ```
+
+## API
+
+| **Methods**                     	 | Description                                                 	| Parameters         	|
+|-----------------------------------|-------------------------------------------------------------	|--------------------	|
+| generateUrl()                   	 | Generate manually the URL                                   	|                    	|
+| urlStrategy                     	 | The strategy for creating the URL for the model             	| $language, $locale 	|
+| isAutoGenerateUrls()            	 | Disable generating urls on creation, globally for the model 	|                    	|
+| disableGeneratingUrlsOnCreate() 	 | Disable generating urls on creation                         	|                    	|
+| **Properties**                  	 |                                                             	|                    	|
+| relative_url                    	 | The url path, relative to the site url                      	|                    	|
+| absolute_url                    	 | The absolute url, including the domain                      	|                    	|
+| **Relations**                   	 |                                                             	|                    	|
+| urls()                          	 | All the active urls, related to the current model           	|                    	|
 
 ## Testing
 

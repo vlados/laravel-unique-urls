@@ -53,7 +53,7 @@ test('4. Generate urls after import', closure: function () {
         $model->disableGeneratingUrlsOnCreate();
         $model->name = \Pest\Faker\faker()->text(20) . time();
         $model->save();
-        expect($model->urls)->toBeNull();
+        expect($model->urls)->toBeEmpty();
     }
     TestModel::all()->each(callback: function (TestModel $model) {
         $model->generateUrl();

@@ -7,7 +7,6 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
 class LaravelUniqueUrlsController
@@ -43,10 +42,10 @@ class LaravelUniqueUrlsController
     /**
      * @param Request $request
      * @param array $arguments
-     * @param Url $originalUrl
+     * @param Url|null $originalUrl
      * @return Redirector|RedirectResponse|Application
      */
-    public function handleRedirect(Request $request, array $arguments = [], Url $originalUrl): Redirector|Application|RedirectResponse
+    public function handleRedirect(Request $request, array $arguments = [], ?Url $originalUrl = null): Redirector|Application|RedirectResponse
     {
         $url = Url::where("related_type", $arguments["original_model"])
             ->where("related_id", $arguments["original_id"])

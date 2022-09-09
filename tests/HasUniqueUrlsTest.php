@@ -161,3 +161,11 @@ test('10. Check if visitor is redirected only ones, if the model have multiple r
             ->and($request->getTargetUrl())->toEqual(url($model->relative_url));
     }
 });
+
+
+test('11. Check if it adds a suffix for same urls', function () use ($generate) {
+    for ($i = 0; $i < $generate; $i++) {
+        $model = TestModel::create(['name' => 'test']);
+        expect($model->relative_url)->toEqual(app()->getLocale()."/parent/test".($i > 0 ? "_".$i : ""));
+    }
+});

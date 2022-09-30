@@ -73,7 +73,7 @@ class RebuildUrlsCommand extends Command
 
                 return $valid;
             })->filter(function ($class) {
-                return method_exists($class,'urls');
+                return method_exists($class, 'urls');
             });
 
         return $models->values();

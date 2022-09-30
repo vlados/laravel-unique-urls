@@ -16,6 +16,7 @@ class LaravelUniqueUrlsController
         if (! (isset($urlObj->controller) && class_exists($urlObj->controller))) {
             abort('404');
         }
+        app()->setLocale($urlObj->language);
 
         $slugController = new $urlObj->controller();
         $arguments = $urlObj->getAttribute('arguments');

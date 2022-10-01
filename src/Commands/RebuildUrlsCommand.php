@@ -3,10 +3,8 @@
 namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Container\Container;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\File;
+use Spatie\ModelInfo\ModelFinder;
 
 class RebuildUrlsCommand extends Command
 {
@@ -36,44 +34,27 @@ class RebuildUrlsCommand extends Command
 
     public function regenerate($model)
     {
-        $records = $model::all();
+        if (! method_exists($model, "generateUrl")) {
+            return false;
+        }
+        $records = app($model)->all();
         $generatedCount = 0;
-        $records->each(function (Model $item) use (&$generatedCount) {
+        $records->each(function ($item) use (&$generatedCount) {
             $item->generateUrl();
             $generatedCount++;
 //            $this->info("Generated URL: " . $item->relative_url);
         });
-        if ($model::whereDoesntHave("urls")->count()) {
+        if (app($model)->whereDoesntHave("urls")->count()) {
             throw new \Exception("Not all urls was generated");
         }
-        $this->info("Generated $generatedCount urls for ".$model);
+        $this->info("Generated $generatedCount urls for " . $model);
     }
 
     public function getModels(): Collection
     {
-        $models = collect(File::allFiles(app_path()))
-            ->map(function ($item) {
-                $path = $item->getRelativePathName();
-                $class = sprintf(
-                    '\%s%s',
-                    Container::getInstance()->getNamespace(),
-                    strtr(substr($path, 0, strrpos($path, '.')), '/', '\\')
-                );
-
-                return $class;
-            })
+        $models = ModelFinder::all()
             ->filter(function ($class) {
-                $valid = false;
-
-                if (class_exists($class)) {
-                    $reflection = new \ReflectionClass($class);
-                    $valid = $reflection->isSubclassOf(Model::class) &&
-                        ! $reflection->isAbstract();
-                }
-
-                return $valid;
-            })->filter(function ($class) {
-                return method_exists($class, 'urls');
+                return method_exists($class, 'urls') && method_exists($class, 'generateUrl');
             });
 
         return $models->values();

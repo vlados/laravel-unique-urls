@@ -4,7 +4,8 @@ namespace Vlados\LaravelUniqueUrls;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use Vlados\LaravelUniqueUrls\Commands\RebuildUrlsCommand;
+use Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand;
+use Vlados\LaravelUniqueUrls\Commands\UrlsGenerateCommand;
 
 class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
 {
@@ -13,7 +14,8 @@ class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
         $package
             ->name('laravel-unique-urls')
             ->hasConfigFile()
-            ->hasCommand(RebuildUrlsCommand::class)
+            ->hasCommand(UrlsGenerateCommand::class)
+            ->hasCommand(UrlsDoctorCommand::class)
             ->hasMigration('create_unique_urls_table');
     }
 }

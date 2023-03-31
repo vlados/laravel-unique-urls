@@ -177,6 +177,23 @@ class LivewireComponentExample extends Component
 | **Relations**                   	 |                                                             	|                    	|
 | urls()                          	 | All the active urls, related to the current model           	|                    	|
 
+## Commands
+### urls:generate
+This command generates unique URLs for the specified model or all models in the application that implement the `HasUniqueUrls` trait.
+#### Usage:
+```php
+php artisan urls:generate [--model=ModelName] [--fresh] [--only-missing]
+```
+### urls:doctor
+This command checks if all models in the application have implemented the HasUniqueUrls trait and the required functions correctly.
+#### Usage:
+```php
+php artisan urls:doctor [--model=ModelName]
+```
+#### Checks
+- Check if all the methods are implemented with the right parameters
+- Check if the urlHandler is returning the correct controller and method
+- Check if urlStrategy is generating unique urls for all the languages
 ## Testing
 
 ```bash

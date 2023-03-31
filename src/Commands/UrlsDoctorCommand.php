@@ -3,16 +3,17 @@
 namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use ReflectionMethod;
 use Spatie\ModelInfo\ModelFinder;
-use Vlados\LaravelUniqueUrls\Models\Url;
+use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-class UrlsGenerateCommand extends Command
+class UrlsDoctorCommand extends Command
 {
-    public $signature = 'urls:generate
+    private $errors = [];
+    public $signature = 'urls:doctor
         {--model= : Specify only a model for which to execute the command}
-        {--only-missing : Skip existing urls}
-        {--fresh : Truncate table urls and generate fresh for every model}
     ';
 
     public $description = 'Generate unique urls';
@@ -22,61 +23,129 @@ class UrlsGenerateCommand extends Command
      */
     public function handle(): int
     {
-        if ($this->option('fresh')) {
-            $this->deleteUrls();
-        }
         if ($model = $this->option('model')) {
-            $this->generateUrls('\\App\\Models\\' . $model);
+            $this->check(app('\\App\\Models\\' . $model));
         } else {
             $this->getModels()->each(function ($model) {
-                $this->generateUrls($model);
+                $this->check(app($model));
             });
         }
+        if (count($this->errors)) {
+            foreach ($this->errors as $model => $errors) {
+                $this->error("Errors for $model");
+                foreach ($errors as $error) {
+                    $this->info(' - ' . $error);
+                }
+            }
 
-        $this->comment('All done');
+            return self::FAILURE;
+        }
+
+        $this->comment('Everything is ok');
 
         return self::SUCCESS;
-    }
-
-    public function generateUrls($model): void
-    {
-        if (! method_exists($model, "generateUrl")) {
-            return;
-        }
-        $records = app($model)->all();
-        $generatedCount = 0;
-        $records->each(function ($item) use (&$generatedCount) {
-            $item->generateUrl();
-            $generatedCount++;
-        });
-        if (app($model)->whereDoesntHave("urls")->count()) {
-            throw new \Exception("Not all urls was generated");
-        }
-        $this->info("Generated $generatedCount urls for " . $model);
     }
 
     public function getModels(): Collection
     {
         $models = ModelFinder::all()
             ->filter(function ($class) {
-                return method_exists($class, 'urls') && method_exists($class, 'generateUrl');
+                return method_exists($class, 'urls') && in_array(HasUniqueUrls::class, class_uses($class));
             });
 
         return $models->values();
     }
 
-    private function deleteUrls(): void
+    /**
+     * @throws \ReflectionException
+     */
+    private function check(Model $model)
     {
-        if ($model = $this->option('model')) {
-            if ($this->output->isVerbose()) {
-                $this->info("Deleting all urls for model: " . $model);
+        $this->checkParams($model);
+        $this->checkUrlHandler($model);
+        $this->checkUrlStrategy($model);
+    }
+
+    /**
+     * @throws \ReflectionException
+     */
+    private function checkParams(Model $model)
+    {
+        $modelName = get_class($model);
+        $modelReflection = new ReflectionMethod($model, 'urlStrategy');
+        $traitReflection = new ReflectionMethod(HasUniqueUrls::class, 'urlStrategy');
+
+        $eventParameters = $modelReflection->getParameters();
+        $traitParameters = $traitReflection->getParameters();
+        $parametersMatch = count($eventParameters) === count($traitParameters);
+
+        if ($parametersMatch) {
+            foreach ($eventParameters as $index => $eventParameter) {
+                if ($eventParameter->getName() !== $traitParameters[$index]->getName()) {
+                    $parametersMatch = false;
+
+                    break;
+                }
             }
-            Url::whereHasMorph('related', ['App\\Models\\' . $model])->delete();
-        } else {
-            if ($this->output->isVerbose()) {
-                $this->info("Clearing urls table");
+        }
+
+        if (! $parametersMatch) {
+            $this->errors[$modelName][] = "The urlStrategy method in the ${modelName} class does not have the same parameters as in the HasUniqueUrls trait.";
+        }
+    }
+
+    private function checkUrlHandler(Model $model): void
+    {
+        if (! method_exists($model, 'urlHandler')) {
+            return;
+        }
+        $modelName = get_class($model);
+
+        $urlHandlerResult = $model->urlHandler();
+
+        if (! is_array($urlHandlerResult)) {
+            $this->errors[$modelName][] = "The urlHandler method is not returning an array";
+
+            return;
+        }
+        if (! (isset($urlHandlerResult['controller'], $urlHandlerResult['method'], $urlHandlerResult['arguments']))) {
+            $this->errors[$modelName][] = "The urlHandler method is not returning an array with the keys: controller, method and arguments";
+
+            return;
+        }
+
+        if (! class_exists($urlHandlerResult['controller'])) {
+            $this->errors[$modelName][] = "The class {$urlHandlerResult['controller']} does not exist";
+        }
+
+        $method = $urlHandlerResult['method'] ?: "__invoke";
+        if (! method_exists($urlHandlerResult['controller'], $method)) {
+            $this->errors[$modelName][] = "The method {$urlHandlerResult['controller']}:{$method} does not exist";
+        }
+    }
+
+    private function checkUrlStrategy(Model $model)
+    {
+        if (! method_exists($model, 'urlStrategy')) {
+            return;
+        }
+        $modelName = get_class($model);
+        $languages = config('unique-urls.languages', []);
+        if (! $languages && count($languages) < 2) {
+            return;
+        }
+
+        $urlStrategyResult = [];
+
+        try {
+            foreach ($languages as $locale => $language) {
+                $urlStrategyResult[$language] = $model->urlStrategy($language, $locale);
             }
-            Url::truncate();
+            if (count(array_unique($urlStrategyResult)) !== count($languages)) {
+                $this->errors[$modelName][] = "The urlStrategy method is not implementing different strategies for different languages";
+            }
+        } catch (\Exception $e) {
+            // do nothing
         }
     }
 }

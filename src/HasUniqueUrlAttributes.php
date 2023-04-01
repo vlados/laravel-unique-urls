@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vlados\LaravelUniqueUrls;
 
 trait HasUniqueUrlAttributes
@@ -23,7 +25,6 @@ trait HasUniqueUrlAttributes
     /**
      * Returns the absolute url for the model.
      *
-     * @param string|null $language
      * @param bool $relative Return absolute or relative url
      *
      * @return string

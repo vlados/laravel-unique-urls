@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
@@ -25,13 +27,8 @@ class UrlsGenerateCommand extends Command
         if ($this->option('fresh')) {
             $this->deleteUrls();
         }
-        if ($model = $this->option('model')) {
-            $this->generateUrls('\\App\\Models\\' . $model);
-        } else {
-            $this->getModels()->each(function ($model) {
-                $this->generateUrls($model);
-            });
-        }
+
+        $this->processModels();
 
         $this->comment('All done');
 
@@ -40,41 +37,55 @@ class UrlsGenerateCommand extends Command
 
     public function generateUrls($model): void
     {
-        if (! method_exists($model, "generateUrl")) {
+        /**
+         * TODO: add -only-missing option
+         */
+        if (! method_exists($model, 'generateUrl')) {
             return;
         }
         $records = app($model)->all();
         $generatedCount = 0;
-        $records->each(function ($item) use (&$generatedCount) {
+        $records->each(static function ($item) use (&$generatedCount): void {
             $item->generateUrl();
             $generatedCount++;
         });
-        if (app($model)->whereDoesntHave("urls")->count()) {
-            throw new \Exception("Not all urls was generated");
+        if (app($model)->whereDoesntHave('urls')->count()) {
+            throw new \Exception('Not all urls was generated');
         }
-        $this->info("Generated $generatedCount urls for " . $model);
+        $this->info("Generated {$generatedCount} urls for " . $model);
     }
 
     public function getModels(): Collection
     {
         $models = ModelFinder::all()
-            ->filter(function ($class) {
+            ->filter(static function ($class) {
                 return method_exists($class, 'urls') && method_exists($class, 'generateUrl');
             });
 
         return $models->values();
     }
 
+    private function processModels(): void
+    {
+        if ($model = $this->option('model')) {
+            $this->generateUrls('\\App\\Models\\' . $model);
+        } else {
+            $this->getModels()->each(function ($model): void {
+                $this->generateUrls($model);
+            });
+        }
+    }
+
     private function deleteUrls(): void
     {
         if ($model = $this->option('model')) {
             if ($this->output->isVerbose()) {
-                $this->info("Deleting all urls for model: " . $model);
+                $this->info('Deleting all urls for model: ' . $model);
             }
             Url::whereHasMorph('related', ['App\\Models\\' . $model])->delete();
         } else {
             if ($this->output->isVerbose()) {
-                $this->info("Clearing urls table");
+                $this->info('Clearing urls table');
             }
             Url::truncate();
         }

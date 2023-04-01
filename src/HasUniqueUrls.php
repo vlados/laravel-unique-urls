@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vlados\LaravelUniqueUrls;
 
 use Exception;
@@ -14,9 +16,11 @@ trait HasUniqueUrls
 
     private bool $autoGenerateUrls = true;
 
-    abstract public function urlHandler();
+    abstract public function urlHandler(): array;
 
     /**
+     * Generate a unique URL for the model.
+     *
      * @throws Exception
      */
     public function generateUrl(): void
@@ -24,26 +28,21 @@ trait HasUniqueUrls
         $this->load('urls');
         $createRecords = [];
 
-        $existing_languages = $this->urls->keyBy('language');
+        $existingLanguages = $this->urls->keyBy('language');
+
         foreach (config('unique-urls.languages') as $locale => $lang) {
-            $unique_url = Url::makeSlug($this->urlStrategy($lang, $locale), $this);
+            $uniqueUrl = Url::makeSlug($this->urlStrategy($lang, $locale), $this);
+            $newUrl = $this->urlHandler();
 
-            $new_url = $this->urlHandler();
+            $this->handleExistingUrl($existingLanguages, $lang, $uniqueUrl);
 
-            if ($existing_languages->has($lang)) {
-                // the url is existing for this model
-                if ($existing_languages[$lang]->slug !== $unique_url) {
-                    // update the existing record if the url slug is different
-                    $existing_languages[$lang]['slug'] = $unique_url;
-                    $existing_languages[$lang]->save();
-                }
-
-                continue;
+            if (! $existingLanguages->has($lang)) {
+                $newUrl['language'] = $lang;
+                $newUrl['slug'] = $uniqueUrl;
+                $createRecords[] = $newUrl;
             }
-            $new_url['language'] = $lang;
-            $new_url['slug'] = $unique_url;
-            $createRecords[] = $new_url;
         }
+
         if (count($createRecords)) {
             $this->urls()->createMany($createRecords);
         }
@@ -71,19 +70,28 @@ trait HasUniqueUrls
 
     protected static function bootHasUniqueUrls(): void
     {
-        static::created(function (Model $model) {
-            if ($model->isAutoGenerateUrls() === true) {
+        static::created(static function (Model $model): void {
+            if ($model->isAutoGenerateUrls()) {
                 $model->generateUrl();
             }
         });
 
-        static::updated(function (Model $model) {
-            if ($model->isAutoGenerateUrls() === true) {
+        static::updated(static function (Model $model): void {
+            if ($model->isAutoGenerateUrls()) {
                 $model->generateUrl();
             }
         });
-        static::deleting(function (Model $model) {
+
+        static::deleting(static function (Model $model): void {
             $model->urls()->delete();
         });
+    }
+
+    private function handleExistingUrl($existingLanguages, string $lang, string $uniqueUrl): void
+    {
+        if ($existingLanguages->has($lang) && $existingLanguages[$lang]->slug !== $uniqueUrl) {
+            $existingLanguages[$lang]['slug'] = $uniqueUrl;
+            $existingLanguages[$lang]->save();
+        }
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vlados\LaravelUniqueUrls\Models;
 
 use Exception;
@@ -63,9 +65,9 @@ class Url extends Model
         throw new Exception('Error creating slug for ' . $model);
     }
 
-    protected static function booted()
+    protected static function booted(): void
     {
-        static::updated(callback: function (Url $url) {
+        static::updated(callback: static function (Url $url): void {
             if (! $url->isDirty('slug')) {
                 return;
             }
@@ -97,12 +99,12 @@ class Url extends Model
 
     private static function otherRecordExistsWithSlug(string $path, $whereModel): bool
     {
-        $query = self::where(function ($query) use ($whereModel) {
-            $query->whereNot(function ($query) use ($whereModel) {
+        $query = self::where(static function ($query) use ($whereModel): void {
+            $query->whereNot(static function ($query) use ($whereModel): void {
                 $query->where('related_id', $whereModel['id'])
                     ->where('related_type', $whereModel['type']);
             })
-                ->orWhere(function ($query): void {
+                ->orWhere(static function ($query): void {
                     $query->whereNull('related_id')
                         ->whereNull('related_type');
                 });

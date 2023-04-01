@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
@@ -11,12 +13,12 @@ use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
 class UrlsDoctorCommand extends Command
 {
-    private $errors = [];
     public $signature = 'urls:doctor
         {--model= : Specify only a model for which to execute the command}
     ';
 
     public $description = 'Generate unique urls';
+    private $errors = [];
 
     /**
      * @throws \Throwable
@@ -26,40 +28,25 @@ class UrlsDoctorCommand extends Command
         if ($model = $this->option('model')) {
             $this->check(app('\\App\\Models\\' . $model));
         } else {
-            $this->getModels()->each(function ($model) {
+            $this->getModels()->each(function ($model): void {
                 $this->check(app($model));
             });
         }
-        if (count($this->errors)) {
-            foreach ($this->errors as $model => $errors) {
-                $this->error("Errors for $model");
-                foreach ($errors as $error) {
-                    $this->info(' - ' . $error);
-                }
-            }
 
-            return self::FAILURE;
-        }
-
-        $this->comment('Everything is ok');
-
-        return self::SUCCESS;
+        return $this->outputErrors();
     }
 
     public function getModels(): Collection
     {
         $models = ModelFinder::all()
-            ->filter(function ($class) {
+            ->filter(static function ($class) {
                 return method_exists($class, 'urls') && in_array(HasUniqueUrls::class, class_uses($class));
             });
 
         return $models->values();
     }
 
-    /**
-     * @throws \ReflectionException
-     */
-    private function check(Model $model)
+    private function check(Model $model): void
     {
         $this->checkParams($model);
         $this->checkUrlHandler($model);
@@ -69,9 +56,9 @@ class UrlsDoctorCommand extends Command
     /**
      * @throws \ReflectionException
      */
-    private function checkParams(Model $model)
+    private function checkParams(Model $model): void
     {
-        $modelName = get_class($model);
+        $modelName = $model::class;
         $modelReflection = new ReflectionMethod($model, 'urlStrategy');
         $traitReflection = new ReflectionMethod(HasUniqueUrls::class, 'urlStrategy');
 
@@ -99,17 +86,17 @@ class UrlsDoctorCommand extends Command
         if (! method_exists($model, 'urlHandler')) {
             return;
         }
-        $modelName = get_class($model);
+        $modelName = $model::class;
 
         $urlHandlerResult = $model->urlHandler();
 
         if (! is_array($urlHandlerResult)) {
-            $this->errors[$modelName][] = "The urlHandler method is not returning an array";
+            $this->errors[$modelName][] = 'The urlHandler method is not returning an array';
 
             return;
         }
-        if (! (isset($urlHandlerResult['controller'], $urlHandlerResult['method'], $urlHandlerResult['arguments']))) {
-            $this->errors[$modelName][] = "The urlHandler method is not returning an array with the keys: controller, method and arguments";
+        if (! isset($urlHandlerResult['controller'], $urlHandlerResult['method'], $urlHandlerResult['arguments'])) {
+            $this->errors[$modelName][] = 'The urlHandler method is not returning an array with the keys: controller, method and arguments';
 
             return;
         }
@@ -118,18 +105,18 @@ class UrlsDoctorCommand extends Command
             $this->errors[$modelName][] = "The class {$urlHandlerResult['controller']} does not exist";
         }
 
-        $method = $urlHandlerResult['method'] ?: "__invoke";
+        $method = $urlHandlerResult['method'] ?: '__invoke';
         if (! method_exists($urlHandlerResult['controller'], $method)) {
             $this->errors[$modelName][] = "The method {$urlHandlerResult['controller']}:{$method} does not exist";
         }
     }
 
-    private function checkUrlStrategy(Model $model)
+    private function checkUrlStrategy(Model $model): void
     {
         if (! method_exists($model, 'urlStrategy')) {
             return;
         }
-        $modelName = get_class($model);
+        $modelName = $model::class;
         $languages = config('unique-urls.languages', []);
         if (! $languages && count($languages) < 2) {
             return;
@@ -142,10 +129,28 @@ class UrlsDoctorCommand extends Command
                 $urlStrategyResult[$language] = $model->urlStrategy($language, $locale);
             }
             if (count(array_unique($urlStrategyResult)) !== count($languages)) {
-                $this->errors[$modelName][] = "The urlStrategy method is not implementing different strategies for different languages";
+                $this->errors[$modelName][] = 'The urlStrategy method is not implementing different strategies for different languages';
             }
         } catch (\Exception $e) {
             // do nothing
         }
+    }
+
+    private function outputErrors(): int
+    {
+        if (count($this->errors)) {
+            foreach ($this->errors as $model => $errors) {
+                $this->error("Errors for {$model}");
+                foreach ($errors as $error) {
+                    $this->info(' - ' . $error);
+                }
+            }
+
+            return self::FAILURE;
+        }
+
+        $this->comment('Everything is ok');
+
+        return self::SUCCESS;
     }
 }

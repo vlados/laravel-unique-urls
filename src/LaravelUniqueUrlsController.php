@@ -9,9 +9,16 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
 use Vlados\LaravelUniqueUrls\Models\Url;
+use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 
 class LaravelUniqueUrlsController
 {
+    private SharedDataService $sharedDataService;
+
+    function __construct(SharedDataService $sharedDataService)
+    {
+        $this->sharedDataService = $sharedDataService;
+    }
     /**
      * Handles the incoming request by checking if the controller exists, then
      * sets the locale and attempts to call the appropriate controller method.
@@ -29,6 +36,7 @@ class LaravelUniqueUrlsController
         $called = $this->callControllerMethod($slugController, $urlObj, $request, $arguments);
 
         if (isset($called) && $called !== false) {
+            $this->sharedDataService->setData($urlObj);
             return $called;
         }
 

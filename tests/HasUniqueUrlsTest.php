@@ -8,7 +8,7 @@ use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 beforeEach(function () {
     app()->setLocale('en');
-//    uses(RefreshDatabase::class);
+    //    uses(RefreshDatabase::class);
 });
 
 afterAll(function () {
@@ -101,7 +101,7 @@ test('6. Check if urls deleted after model deleted', function () {
     $model->save();
     expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/' . Str::slug($newName)));
     $model->load(['urls']);
-//    dd($model->relative_url);
+    //    dd($model->relative_url);
     $urls = $model->urls;
     $model->delete();
     $urls->each(function ($item) {

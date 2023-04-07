@@ -1,4 +1,5 @@
 <?php
+
 namespace Vlados\LaravelUniqueUrls\Services;
 
 use Illuminate\Support\Facades\Route;
@@ -9,7 +10,7 @@ class SharedDataService
     protected ?Url $data = null;
     public ?string $currentRoute;
 
-    function __construct()
+    public function __construct()
     {
         $this->currentRoute = Route::currentRouteName();
     }

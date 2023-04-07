@@ -15,10 +15,11 @@ class LaravelUniqueUrlsController
 {
     private SharedDataService $sharedDataService;
 
-    function __construct(SharedDataService $sharedDataService)
+    public function __construct(SharedDataService $sharedDataService)
     {
         $this->sharedDataService = $sharedDataService;
     }
+
     /**
      * Handles the incoming request by checking if the controller exists, then
      * sets the locale and attempts to call the appropriate controller method.
@@ -37,6 +38,7 @@ class LaravelUniqueUrlsController
 
         if (isset($called) && $called !== false) {
             $this->sharedDataService->setData($urlObj);
+
             return $called;
         }
 

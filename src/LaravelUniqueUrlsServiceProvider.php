@@ -8,9 +8,18 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand;
 use Vlados\LaravelUniqueUrls\Commands\UrlsGenerateCommand;
+use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 
 class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
 {
+    public function register()
+    {
+        $this->app->singleton(SharedDataService::class, function ($app) {
+            return new SharedDataService();
+        });
+        parent::register();
+    }
+
     public function configurePackage(Package $package): void
     {
         $package

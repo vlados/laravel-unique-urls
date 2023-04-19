@@ -28,7 +28,7 @@
         "nunomaduro/larastan": "^2.0.1",
         "nunomaduro/phpinsights": "^2.4",
         "orchestra/testbench": "^7.0",
-        "pestphp/pest": "^1.21",
+        "pestphp/pest": "^2.5.1",
         "pestphp/pest-plugin-faker": "^1.0",
         "pestphp/pest-plugin-laravel": "^1.1",
         "phpstan/extension-installer": "^1.1",

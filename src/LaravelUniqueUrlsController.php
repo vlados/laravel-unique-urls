@@ -31,7 +31,7 @@ class LaravelUniqueUrlsController
         }
         app()->setLocale($urlObj->language);
 
-        $slugController = new $urlObj->controller();
+        $slugController = app($urlObj->controller);
         $arguments = $urlObj->getAttribute('arguments') ?? [];
 
         $called = $this->callControllerMethod($slugController, $urlObj, $request, $arguments);

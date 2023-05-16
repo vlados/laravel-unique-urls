@@ -3,7 +3,6 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 use Vlados\LaravelUniqueUrls\Models\Url;
-use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 

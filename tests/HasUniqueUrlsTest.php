@@ -3,6 +3,7 @@
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 use Vlados\LaravelUniqueUrls\Models\Url;
+use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
 use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
@@ -153,10 +154,10 @@ test('10. Check if visitor is redirected only ones, if the model have multiple r
         }
     }
 
+    $controller = resolve(LaravelUniqueUrlsController::class);
     foreach ($urls as $item) {
         $url = Url::where("slug", $item)->where("language", app()->getLocale())->first();
-        $request = app(LaravelUniqueUrlsController::class)
-            ->handleRequest($url, new Illuminate\Http\Request());
+        $request = $controller->handleRequest($url, new Illuminate\Http\Request());
         expect($request->getStatusCode())->toEqual(301)
             ->and($request->getTargetUrl())->toEqual(url($model->relative_url));
     }

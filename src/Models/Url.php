@@ -53,7 +53,7 @@ class Url extends Model
     public static function makeSlug(string $slug, Model $model): string
     {
         if (! $slug) {
-			throw new Exception('Slug cannot be empty for model ' . get_class($model). ' with id ' . $model->getQueueableId());
+            throw new Exception('Slug cannot be empty for model ' . get_class($model). ' with id ' . $model->getQueueableId());
         }
         $where = $model->only(['id', 'type']);
         $where['type'] = $model::class;

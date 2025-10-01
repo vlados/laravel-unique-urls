@@ -51,7 +51,7 @@ test('4. Generate urls after import', closure: function () {
     for ($i = 0; $i < $generate; $i++) {
         $model = new TestModel();
         $model->disableGeneratingUrlsOnCreate();
-        $model->name = \Pest\Faker\faker()->text(20) . time();
+        $model->name = fake()->text(20) . time();
         $model->save();
         expect($model->urls)->toBeEmpty();
     }
@@ -67,7 +67,7 @@ test("5. Generate multiple parent ($generate) and child urls ($generate), total:
     for ($i = 0; $i < $generate; $i++) {
         $translations = [];
         foreach (config('unique-urls.languages') as $locale => $lang) {
-            $translations[$lang] = \Pest\Faker\faker($locale)->company() . $i;
+            $translations[$lang] = fake($locale)->company() . $i;
         }
         $parentModel = TestModel::create([
             'name' => $translations,
@@ -75,7 +75,7 @@ test("5. Generate multiple parent ($generate) and child urls ($generate), total:
         for ($b = 0; $b < $generate; $b++) {
             $translations = [];
             foreach (config('unique-urls.languages') as $locale => $lang) {
-                $translations[$lang] = \Pest\Faker\faker($locale)->company() . $b;
+                $translations[$lang] = fake($locale)->company() . $b;
             }
             $childModel = ChildModel::create([
                 'parent_id' => $parentModel->id,
@@ -96,7 +96,7 @@ test("5. Generate multiple parent ($generate) and child urls ($generate), total:
 test('6. Check if urls deleted after model deleted', function () {
     $model = TestModel::create(['name' => 'this is a test']);
     expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/this-is-a-test'));
-    $newName = \Pest\Faker\faker()->text;
+    $newName = fake()->text;
     $model->name = $newName;
     $model->save();
     expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/' . Str::slug($newName)));
@@ -112,7 +112,7 @@ test('6. Check if urls deleted after model deleted', function () {
 test('7. Check if url is updated correctly', function () {
     $model = TestModel::create(['name' => 'this is a test']);
     expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/this-is-a-test'));
-    $newName = \Pest\Faker\faker()->text;
+    $newName = fake()->text;
     $model->name = $newName;
     $model->save();
     expect($model->absolute_url)->toEqual(url(app()->getLocale() . '/parent/' . Str::slug($newName)));
@@ -121,7 +121,7 @@ test('7. Check if url is updated correctly', function () {
 test('8. Check if urls are created when updating, if for some reason they are deleted', function () {
     $model = TestModel::create(['name' => 'this is a test']);
     $model->urls()->delete();
-    $newName = \Pest\Faker\faker()->text;
+    $newName = fake()->text;
     $model->name = $newName;
     $model->save();
     $model->load(['urls']);

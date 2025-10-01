@@ -1,6 +1,8 @@
 <?php
 
+use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 use Vlados\LaravelUniqueUrls\Models\Url;
 use Vlados\LaravelUniqueUrls\Tests\Models\ChildModel;
@@ -168,4 +170,78 @@ test('11. Check if it adds a suffix for same urls', function () use ($generate) 
         $model = TestModel::create(['name' => 'test']);
         expect($model->relative_url)->toEqual(app()->getLocale()."/parent/test".($i > 0 ? "_".$i : ""));
     }
+});
+
+test('12. Check if exception is thrown when model has conflicting url column', function () {
+    // Create a table with 'url' column
+    Schema::create('models_with_url_column', function (Blueprint $table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->string('url');
+    });
+
+    // Create a model class that uses HasUniqueUrls trait
+    $modelClass = new class extends \Illuminate\Database\Eloquent\Model {
+        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+
+        protected $table = 'models_with_url_column';
+        protected $guarded = [];
+        public $timestamps = false;
+
+        public function urlHandler(): array
+        {
+            return [
+                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                'method' => 'view',
+                'arguments' => [],
+            ];
+        }
+
+        public function urlStrategy($language, $locale): string
+        {
+            return \Illuminate\Support\Str::slug($this->name);
+        }
+    };
+
+    expect(fn() => $modelClass::create(['name' => 'test', 'url' => 'test-url']))
+        ->toThrow(Exception::class, "has a conflicting column 'url'");
+
+    Schema::dropIfExists('models_with_url_column');
+});
+
+test('13. Check if exception is thrown when model has conflicting urls column', function () {
+    // Create a table with 'urls' column
+    Schema::create('models_with_urls_column', function (Blueprint $table) {
+        $table->increments('id');
+        $table->string('name');
+        $table->string('urls');
+    });
+
+    // Create a model class that uses HasUniqueUrls trait
+    $modelClass = new class extends \Illuminate\Database\Eloquent\Model {
+        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+
+        protected $table = 'models_with_urls_column';
+        protected $guarded = [];
+        public $timestamps = false;
+
+        public function urlHandler(): array
+        {
+            return [
+                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                'method' => 'view',
+                'arguments' => [],
+            ];
+        }
+
+        public function urlStrategy($language, $locale): string
+        {
+            return \Illuminate\Support\Str::slug($this->name);
+        }
+    };
+
+    expect(fn() => $modelClass::create(['name' => 'test', 'urls' => 'test-urls']))
+        ->toThrow(Exception::class, "has a conflicting column 'urls'");
+
+    Schema::dropIfExists('models_with_urls_column');
 });

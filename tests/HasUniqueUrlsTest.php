@@ -181,30 +181,32 @@ test('12. Check if exception is thrown when model has conflicting url column', f
     });
 
     // Create a model class that uses HasUniqueUrls trait
-    $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
-        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+    // The exception should be thrown during model instantiation
+    expect(function () {
+        $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
+            use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-        protected $table = 'models_with_url_column';
-        protected $guarded = [];
-        public $timestamps = false;
+            protected $table = 'models_with_url_column';
+            protected $guarded = [];
+            public $timestamps = false;
 
-        public function urlHandler(): array
-        {
-            return [
-                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
-                'method' => 'view',
-                'arguments' => [],
-            ];
-        }
+            public function urlHandler(): array
+            {
+                return [
+                    'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                    'method' => 'view',
+                    'arguments' => [],
+                ];
+            }
 
-        public function urlStrategy($language, $locale): string
-        {
-            return \Illuminate\Support\Str::slug($this->name);
-        }
-    };
+            public function urlStrategy($language, $locale): string
+            {
+                return \Illuminate\Support\Str::slug($this->name);
+            }
+        };
 
-    expect(fn () => $modelClass::create(['name' => 'test', 'url' => 'test-url']))
-        ->toThrow(Exception::class, "has a conflicting column 'url'");
+        $modelClass::create(['name' => 'test', 'url' => 'test-url']);
+    })->toThrow(Exception::class, "has a conflicting column 'url'");
 
     Schema::dropIfExists('models_with_url_column');
 });
@@ -218,30 +220,32 @@ test('13. Check if exception is thrown when model has conflicting urls column', 
     });
 
     // Create a model class that uses HasUniqueUrls trait
-    $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
-        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+    // The exception should be thrown during model instantiation
+    expect(function () {
+        $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
+            use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-        protected $table = 'models_with_urls_column';
-        protected $guarded = [];
-        public $timestamps = false;
+            protected $table = 'models_with_urls_column';
+            protected $guarded = [];
+            public $timestamps = false;
 
-        public function urlHandler(): array
-        {
-            return [
-                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
-                'method' => 'view',
-                'arguments' => [],
-            ];
-        }
+            public function urlHandler(): array
+            {
+                return [
+                    'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                    'method' => 'view',
+                    'arguments' => [],
+                ];
+            }
 
-        public function urlStrategy($language, $locale): string
-        {
-            return \Illuminate\Support\Str::slug($this->name);
-        }
-    };
+            public function urlStrategy($language, $locale): string
+            {
+                return \Illuminate\Support\Str::slug($this->name);
+            }
+        };
 
-    expect(fn () => $modelClass::create(['name' => 'test', 'urls' => 'test-urls']))
-        ->toThrow(Exception::class, "has a conflicting column 'urls'");
+        $modelClass::create(['name' => 'test', 'urls' => 'test-urls']);
+    })->toThrow(Exception::class, "has a conflicting column 'urls'");
 
     Schema::dropIfExists('models_with_urls_column');
 });

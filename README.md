@@ -8,7 +8,8 @@
 [![PHPStan](https://github.com/vlados/laravel-unique-urls/actions/workflows/phpstan.yml/badge.svg)](https://github.com/vlados/laravel-unique-urls/actions/workflows/phpstan.yml)
 
 Generate unique urls for blogs, ecommerce and platforms without prefix.
-Laravel 
+
+**Supports Laravel 9-12 | PHP 8.1-8.4** 
 
 - [Installation](#installation)
 - [Usage](#usage)

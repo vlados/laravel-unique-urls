@@ -169,6 +169,7 @@ class LivewireComponentExample extends Component
 | **Methods**                     	 | Description                                                 	| Parameters         	|
 |-----------------------------------|-------------------------------------------------------------	|--------------------	|
 | generateUrl()                   	 | Generate manually the URL                                   	|                    	|
+| getSlug()                       	 | Get the URL for a specific language in relative or absolute format | ?string $language = '', bool $relative = true |
 | urlStrategy                     	 | The strategy for creating the URL for the model             	| $language, $locale 	|
 | isAutoGenerateUrls()            	 | Disable generating urls on creation, globally for the model 	|                    	|
 | disableGeneratingUrlsOnCreate() 	 | Disable generating urls on creation                         	|                    	|
@@ -177,6 +178,25 @@ class LivewireComponentExample extends Component
 | absolute_url                    	 | The absolute url, including the domain                      	|                    	|
 | **Relations**                   	 |                                                             	|                    	|
 | urls()                          	 | All the active urls, related to the current model           	|                    	|
+
+### Getting Model URLs
+
+```php
+// Get relative URL for current locale
+$model->relative_url; // e.g., "my-product-name"
+
+// Get absolute URL for current locale
+$model->absolute_url; // e.g., "https://example.com/my-product-name"
+
+// Get URL for specific language (relative)
+$model->getSlug('en', true); // e.g., "my-product-name"
+
+// Get URL for specific language (absolute)
+$model->getSlug('en', false); // e.g., "https://example.com/my-product-name"
+
+// Get URL for current locale (defaults to app locale)
+$model->getSlug(); // e.g., "my-product-name"
+```
 
 ## Commands
 ### urls:generate

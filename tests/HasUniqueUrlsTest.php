@@ -181,7 +181,7 @@ test('12. Check if exception is thrown when model has conflicting url column', f
     });
 
     // Create a model class that uses HasUniqueUrls trait
-    $modelClass = new class extends \Illuminate\Database\Eloquent\Model {
+    $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
         use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
         protected $table = 'models_with_url_column';
@@ -203,7 +203,7 @@ test('12. Check if exception is thrown when model has conflicting url column', f
         }
     };
 
-    expect(fn() => $modelClass::create(['name' => 'test', 'url' => 'test-url']))
+    expect(fn () => $modelClass::create(['name' => 'test', 'url' => 'test-url']))
         ->toThrow(Exception::class, "has a conflicting column 'url'");
 
     Schema::dropIfExists('models_with_url_column');
@@ -218,7 +218,7 @@ test('13. Check if exception is thrown when model has conflicting urls column', 
     });
 
     // Create a model class that uses HasUniqueUrls trait
-    $modelClass = new class extends \Illuminate\Database\Eloquent\Model {
+    $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
         use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
         protected $table = 'models_with_urls_column';
@@ -240,7 +240,7 @@ test('13. Check if exception is thrown when model has conflicting urls column', 
         }
     };
 
-    expect(fn() => $modelClass::create(['name' => 'test', 'urls' => 'test-urls']))
+    expect(fn () => $modelClass::create(['name' => 'test', 'urls' => 'test-urls']))
         ->toThrow(Exception::class, "has a conflicting column 'urls'");
 
     Schema::dropIfExists('models_with_urls_column');

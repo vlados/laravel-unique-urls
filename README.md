@@ -769,6 +769,47 @@ $this->assertUrlEquals(
 );
 ```
 
+## TODO
+
+### Planned Features
+
+- [ ] **Pest 4.x Compatibility** - Investigate and fix compatibility issues with Pest 4.1.6+
+- [ ] **URL Versioning** - Track URL change history with timestamps and reasons
+- [ ] **Sitemap Generation** - Automatic sitemap.xml generation command
+- [ ] **URL Analytics** - Track URL hits and redirects for insights
+- [ ] **Soft Delete Support** - Handle URLs for soft-deleted models
+- [ ] **Custom Redirect Rules** - Support for regex-based redirect patterns
+- [ ] **URL Preview/Dry Run** - Preview what URLs would be generated before committing
+- [ ] **Duplicate Detection** - Better handling of potential slug conflicts
+- [ ] **URL Health Check** - Command to verify all URLs are accessible
+- [ ] **Performance Dashboard** - Artisan command showing URL generation statistics
+- [ ] **API Documentation** - OpenAPI/Swagger documentation for API methods
+- [ ] **GraphQL Support** - Integration with Laravel Lighthouse
+- [ ] **Queue Support** - Queue URL generation for large batches
+- [ ] **Event System** - Fire events on URL creation, update, and redirect
+- [ ] **URL Aliases** - Support multiple URLs pointing to same resource
+- [ ] **URL Templates** - Define URL patterns in config
+- [ ] **SEO Analyzer** - Check URLs for SEO best practices
+- [ ] **Multi-Tenant Support** - Tenant-specific URL handling
+- [ ] **URL Expiration** - Support for temporary URLs
+- [ ] **Wildcard Routes** - Support for pattern-based dynamic routes
+
+### Nice to Have
+
+- [ ] **Admin UI** - Simple web interface for managing URLs
+- [ ] **Import/Export** - Import URLs from CSV/JSON
+- [ ] **URL Shortener Integration** - Generate short URLs automatically
+- [ ] **Custom Slug Transformers** - Plugin system for custom slug generation
+- [ ] **URL Monitoring** - Integration with monitoring tools (Sentry, etc.)
+
+### Documentation
+
+- [ ] Video tutorials for common use cases
+- [ ] Migration guide from other URL packages
+- [ ] Performance benchmarks
+- [ ] Integration examples with popular packages
+- [ ] Troubleshooting guide with common errors
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.

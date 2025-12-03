@@ -55,6 +55,7 @@ class UrlsGenerateCommand extends Command
             return;
         }
 
+        /** @var \Illuminate\Database\Eloquent\Model $model */
         $model = app($modelClass);
 
         if (! method_exists($model, 'generateUrl')) {
@@ -113,6 +114,7 @@ class UrlsGenerateCommand extends Command
             : $model->query();
 
         $query->chunkById($chunkSize, function ($records) use (&$generated, &$skipped, &$failed, $bar) {
+            /** @var \Illuminate\Database\Eloquent\Model $record */
             foreach ($records as $record) {
                 try {
                     // Check if URL exists (for non-only-missing mode)

@@ -2,6 +2,10 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v1.1.1 - 2025-12-03
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v1.1.0...v1.1.1
+
 ## v1.1.0 - 2025-12-03
 
 ### What's Changed

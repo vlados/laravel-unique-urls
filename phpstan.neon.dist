@@ -10,5 +10,12 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
-    checkMissingIterableValueType: false
+    ignoreErrors:
+        # Trait methods are not analyzed by PHPStan
+        -
+            message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::(urls|generateUrl)\(\)#'
+            path: src/Commands/UrlsGenerateCommand.php
+        # Traits are not analyzed when unused
+        -
+            identifier: trait.unused
 

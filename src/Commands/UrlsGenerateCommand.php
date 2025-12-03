@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Spatie\ModelInfo\ModelFinder;
 use Vlados\LaravelUniqueUrls\Models\Url;
@@ -52,6 +51,7 @@ class UrlsGenerateCommand extends Command
     {
         if (! class_exists($modelClass)) {
             $this->error("Model class {$modelClass} not found");
+
             return;
         }
 
@@ -59,6 +59,7 @@ class UrlsGenerateCommand extends Command
 
         if (! method_exists($model, 'generateUrl')) {
             $this->warn("Model {$modelClass} does not have generateUrl() method");
+
             return;
         }
 
@@ -69,6 +70,7 @@ class UrlsGenerateCommand extends Command
                 $this->warn("  URLs will not be generated automatically.");
                 $this->warn("  Use --force flag to generate anyway, or enable in model.");
                 $this->newLine();
+
                 return;
             }
 
@@ -90,6 +92,7 @@ class UrlsGenerateCommand extends Command
         if ($withoutUrls === 0 && $this->option('only-missing')) {
             $this->line("└─ <fg=green>All models already have URLs, skipping...</>");
             $this->newLine();
+
             return;
         }
 
@@ -182,6 +185,7 @@ class UrlsGenerateCommand extends Command
 
             if ($models->isEmpty()) {
                 $this->warn('No models found with generateUrl() method');
+
                 return;
             }
 

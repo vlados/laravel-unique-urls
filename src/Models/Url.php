@@ -9,6 +9,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Log;
+use Vlados\LaravelUniqueUrls\Exceptions\EmptySlugException;
+use Vlados\LaravelUniqueUrls\Exceptions\InvalidSlugException;
 use Vlados\LaravelUniqueUrls\LaravelUniqueUrlsController;
 
 /**
@@ -48,21 +51,63 @@ class Url extends Model
     /**
      * Generate a slug for given model. If the slug exists for different model it will add suffix _1, _2 and so on.
      *
+     * @throws EmptySlugException
+     * @throws InvalidSlugException
      * @throws Exception
      */
     public static function makeSlug(string $slug, Model $model): string
     {
         if (! $slug) {
-            throw new Exception('Slug cannot be empty for model ' . get_class($model). ' with id ' . $model->getQueueableId());
+            throw EmptySlugException::forModel($model);
         }
+
+        $originalSlug = $slug;
+
+        // Auto-trim leading and trailing slashes
+        $slug = trim($slug, '/');
+
+        // Check if slug is empty after trimming
+        if (! $slug) {
+            throw EmptySlugException::afterTrimming($originalSlug, $model);
+        }
+
+        // Log warning if slug was modified
+        if ($originalSlug !== $slug) {
+            Log::warning('Slug was trimmed: leading/trailing slashes removed', [
+                'model' => get_class($model),
+                'id' => $model->getKey(),
+                'original' => $originalSlug,
+                'trimmed' => $slug,
+            ]);
+        }
+
+        // Optional: Validate slug format (if config enabled)
+        if (config('unique-urls.validate_slugs', false)) {
+            self::validateSlugFormat($slug, $model);
+        }
+
         $where = $model->only(['id', 'type']);
         $where['type'] = $model::class;
         $new_slug = self::makeUniqueSlug($slug, $where);
+
         if ($new_slug) {
             return $new_slug;
         }
 
         throw new Exception('Error creating slug for ' . $model);
+    }
+
+    /**
+     * Validate slug format (lowercase letters, numbers, hyphens only).
+     *
+     * @throws InvalidSlugException
+     */
+    protected static function validateSlugFormat(string $slug, Model $model): void
+    {
+        // Check for invalid characters
+        if (! preg_match('/^[a-z0-9\-]+$/', $slug)) {
+            throw InvalidSlugException::containsInvalidCharacters($slug, $model);
+        }
     }
 
     protected static function booted(): void

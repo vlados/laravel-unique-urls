@@ -10,6 +10,7 @@ parameters:
     tmpDir: build/phpstan
     checkOctaneCompatibility: true
     checkModelProperties: true
+    reportUnmatchedIgnoredErrors: false
     ignoreErrors:
         # Trait methods are not analyzed by PHPStan
         -

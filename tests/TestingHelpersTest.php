@@ -1,7 +1,6 @@
 <?php
 
 use Vlados\LaravelUniqueUrls\Testing\AssertsUniqueUrls;
-use Vlados\LaravelUniqueUrls\Tests\Models\TestModel;
 
 beforeEach(function () {
     app()->setLocale('en');
@@ -18,7 +17,7 @@ test('35. AssertsUniqueUrls trait exists and can be used', function () {
 test('36. AssertsUniqueUrls has all required assertion methods', function () {
     $reflection = new \ReflectionClass('Vlados\LaravelUniqueUrls\Testing\AssertsUniqueUrls');
     $methods = $reflection->getMethods(\ReflectionMethod::IS_PROTECTED);
-    $methodNames = array_map(fn($m) => $m->getName(), $methods);
+    $methodNames = array_map(fn ($m) => $m->getName(), $methods);
 
     expect($methodNames)->toContain('assertHasUrl')
         ->and($methodNames)->toContain('assertHasNoUrl')

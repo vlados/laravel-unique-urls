@@ -51,7 +51,7 @@ test('17. Slug with only slashes throws EmptySlugException', function () {
     $model = new TestModel();
     $model->name = 'test';
 
-    expect(fn() => Url::makeSlug('/', $model))
+    expect(fn () => Url::makeSlug('/', $model))
         ->toThrow(EmptySlugException::class, 'empty after trimming');
 });
 
@@ -79,9 +79,9 @@ test('18. Auto-trim logs warning when slug is modified', function () {
 test('19. EmptySlugException thrown for empty slug with model context', function () {
     $model = TestModel::create(['name' => 'test']);
 
-    expect(fn() => Url::makeSlug('', $model))
+    expect(fn () => Url::makeSlug('', $model))
         ->toThrow(EmptySlugException::class)
-        ->and(fn() => Url::makeSlug('', $model))
+        ->and(fn () => Url::makeSlug('', $model))
         ->toThrow(EmptySlugException::class, 'TestModel');
 });
 
@@ -92,13 +92,13 @@ test('20. InvalidSlugException thrown for invalid characters when validation ena
     $model->name = 'test';
 
     // Test various invalid characters
-    expect(fn() => Url::makeSlug('Test-Product', $model))
+    expect(fn () => Url::makeSlug('Test-Product', $model))
         ->toThrow(InvalidSlugException::class, 'contains invalid characters');
 
-    expect(fn() => Url::makeSlug('test_product', $model))
+    expect(fn () => Url::makeSlug('test_product', $model))
         ->toThrow(InvalidSlugException::class, 'contains invalid characters');
 
-    expect(fn() => Url::makeSlug('test product', $model))
+    expect(fn () => Url::makeSlug('test product', $model))
         ->toThrow(InvalidSlugException::class, 'contains invalid characters');
 
     Config::set('unique-urls.validate_slugs', false);
@@ -131,7 +131,7 @@ test('22. Reserved slug throws InvalidSlugException', function () {
 
     $model = TestModel::create(['name' => 'test']);
 
-    expect(fn() => Url::makeSlug('admin', $model))
+    expect(fn () => Url::makeSlug('admin', $model))
         ->toThrow(InvalidSlugException::class, 'slug is reserved');
 });
 
@@ -336,12 +336,12 @@ test('34. Config options are respected', function () {
 
     // Test validate_slugs config
     Config::set('unique-urls.validate_slugs', true);
-    expect(fn() => Url::makeSlug('Invalid Slug!', $model))
+    expect(fn () => Url::makeSlug('Invalid Slug!', $model))
         ->toThrow(InvalidSlugException::class);
     Config::set('unique-urls.validate_slugs', false);
 
     // Test reserved_slugs config
     Config::set('unique-urls.reserved_slugs', ['forbidden']);
-    expect(fn() => Url::makeSlug('forbidden', $model))
+    expect(fn () => Url::makeSlug('forbidden', $model))
         ->toThrow(InvalidSlugException::class, 'reserved');
 });

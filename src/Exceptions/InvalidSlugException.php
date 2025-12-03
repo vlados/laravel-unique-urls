@@ -41,4 +41,15 @@ class InvalidSlugException extends Exception
             "Slugs should only contain lowercase letters, numbers, and hyphens."
         );
     }
+
+    public static function isReserved(string $slug, Model $model): self
+    {
+        $modelClass = get_class($model);
+        $modelId = $model->getKey();
+
+        return new self(
+            "Invalid slug '{$slug}' for {$modelClass} (ID: {$modelId}): slug is reserved. " .
+            "Reserved slugs are defined in config/unique-urls.php. Choose a different slug."
+        );
+    }
 }

@@ -86,6 +86,9 @@ class Url extends Model
             self::validateSlugFormat($slug, $model);
         }
 
+        // Check for reserved slugs
+        self::checkReservedSlugs($slug, $model);
+
         $where = $model->only(['id', 'type']);
         $where['type'] = $model::class;
         $new_slug = self::makeUniqueSlug($slug, $where);
@@ -107,6 +110,20 @@ class Url extends Model
         // Check for invalid characters
         if (! preg_match('/^[a-z0-9\-]+$/', $slug)) {
             throw InvalidSlugException::containsInvalidCharacters($slug, $model);
+        }
+    }
+
+    /**
+     * Check if slug is in the reserved slugs list.
+     *
+     * @throws InvalidSlugException
+     */
+    protected static function checkReservedSlugs(string $slug, Model $model): void
+    {
+        $reservedSlugs = config('unique-urls.reserved_slugs', []);
+
+        if (! empty($reservedSlugs) && in_array($slug, $reservedSlugs, true)) {
+            throw InvalidSlugException::isReserved($slug, $model);
         }
     }
 

@@ -7,6 +7,7 @@ namespace Vlados\LaravelUniqueUrls;
 use Exception;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Models\Url;
 
@@ -95,6 +96,54 @@ trait HasUniqueUrls
         if (count($createRecords)) {
             $this->urls()->createMany($createRecords);
         }
+    }
+
+    /**
+     * Generate URLs for multiple models in batch with memory optimization.
+     *
+     * @param  \Illuminate\Support\Collection|\Illuminate\Database\Eloquent\Collection  $models
+     * @param  int  $chunkSize  Number of models to process before garbage collection
+     * @param  callable|null  $callback  Optional callback for progress tracking
+     * @return array Statistics about the operation ['generated' => int, 'skipped' => int, 'failed' => int]
+     */
+    public static function generateUrlsInBatch($models, int $chunkSize = 500, ?callable $callback = null): array
+    {
+        $stats = ['generated' => 0, 'skipped' => 0, 'failed' => 0];
+        $processed = 0;
+
+        foreach ($models->chunk($chunkSize) as $chunk) {
+            foreach ($chunk as $model) {
+                try {
+                    // Check if URLs already exist
+                    if ($model->urls()->exists()) {
+                        $stats['skipped']++;
+                    } else {
+                        $model->generateUrl();
+                        $stats['generated']++;
+                    }
+                } catch (\Throwable $e) {
+                    $stats['failed']++;
+                    // Log the error but continue processing
+                    Log::error('Failed to generate URL in batch', [
+                        'model' => get_class($model),
+                        'id' => $model->getKey(),
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+
+                $processed++;
+
+                // Call progress callback if provided
+                if ($callback) {
+                    $callback($model, $processed, $models->count(), $stats);
+                }
+            }
+
+            // Force garbage collection after each chunk
+            gc_collect_cycles();
+        }
+
+        return $stats;
     }
 
     public function urls(): MorphMany

@@ -12,12 +12,12 @@ trait HasUniqueUrlAttributes
         $this->makeVisible('relative_url');
     }
 
-    public function getRelativeUrlAttribute(): string|null
+    public function getRelativeUrlAttribute(): string
     {
         return $this->getSlug(null, true);
     }
 
-    public function getAbsoluteUrlAttribute(): string|null
+    public function getAbsoluteUrlAttribute(): string
     {
         return $this->getSlug(null, false);
     }
@@ -27,9 +27,9 @@ trait HasUniqueUrlAttributes
      *
      * @param bool $relative Return absolute or relative url
      *
-     * @return string
+     * @return string Empty string if no URL exists, preventing TypeError in url() helper
      */
-    public function getSlug(?string $language = '', bool $relative = true): string|null
+    public function getSlug(?string $language = '', bool $relative = true): string
     {
         $language = $language ? $language : app()->getLocale();
         if ($this->urls->isEmpty()) {
@@ -40,6 +40,6 @@ trait HasUniqueUrlAttributes
             return $relative ? $url->slug : url($url->slug);
         }
 
-        return null;
+        return '';
     }
 }

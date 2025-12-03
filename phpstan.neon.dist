@@ -15,7 +15,11 @@ parameters:
         -
             message: '#Call to an undefined method Illuminate\\Database\\Eloquent\\Model::(urls|generateUrl)\(\)#'
             path: src/Commands/UrlsGenerateCommand.php
-        # Traits are not analyzed when unused
+        # Package traits are meant to be used by consumers, not within the package
         -
             identifier: trait.unused
+            paths:
+                - src/HasUniqueUrls.php
+                - src/HasUniqueUrlAttributes.php
+                - src/Testing/AssertsUniqueUrls.php
 

@@ -28,9 +28,9 @@ class TestModel extends Model
         return $language.'/parent/' . Str::slug($this->getTranslation('name', $language), '-', $language);
     }
 
-    public function asJson($value): bool|string
+    protected function asJson($value, $flags = 0): string|false
     {
-        return json_encode($value, JSON_UNESCAPED_UNICODE);
+        return json_encode($value, JSON_UNESCAPED_UNICODE | $flags);
     }
 
     public function urlHandler(): array

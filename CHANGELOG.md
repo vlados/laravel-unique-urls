@@ -18,15 +18,14 @@ protected function asJson($value): string|false
 
 // Laravel 12
 protected function asJson($value, $flags = 0): string|false
-
 ```
+
 This update ensures the package works with both Laravel 11 and Laravel 12.
 
 #### Supported Versions
 
 - **Laravel:** 9, 10, 11, 12
 - **PHP:** 8.1, 8.2, 8.3, 8.4
-
 
 ---
 

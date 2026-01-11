@@ -172,7 +172,7 @@ test('11. Check if it adds a suffix for same urls', function () use ($generate) 
     }
 });
 
-test('12. Check if exception is thrown when model has conflicting url column', function () {
+test('12. urls:doctor detects conflicting url column', function () {
     // Create a table with 'url' column
     Schema::create('models_with_url_column', function (Blueprint $table) {
         $table->increments('id');
@@ -180,38 +180,51 @@ test('12. Check if exception is thrown when model has conflicting url column', f
         $table->string('url');
     });
 
-    // Create a model class that uses HasUniqueUrls trait
-    // The exception should be thrown during model instantiation
-    expect(function () {
-        $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
-            use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+    // Create a test model instance
+    $model = new class () extends \Illuminate\Database\Eloquent\Model {
+        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-            protected $table = 'models_with_url_column';
-            protected $guarded = [];
-            public $timestamps = false;
+        protected $table = 'models_with_url_column';
+        protected $guarded = [];
+        public $timestamps = false;
 
-            public function urlHandler(): array
-            {
-                return [
-                    'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
-                    'method' => 'view',
-                    'arguments' => [],
-                ];
-            }
+        public function urlHandler(): array
+        {
+            return [
+                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                'method' => 'view',
+                'arguments' => [],
+            ];
+        }
 
-            public function urlStrategy($language, $locale): string
-            {
-                return \Illuminate\Support\Str::slug($this->name);
-            }
-        };
+        public function urlStrategy($language, $locale): string
+        {
+            return \Illuminate\Support\Str::slug($this->name);
+        }
+    };
 
-        $modelClass::create(['name' => 'test', 'url' => 'test-url']);
-    })->toThrow(Exception::class, "has a conflicting column 'url'");
+    // Test the doctor command's check directly
+    $command = new \Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand();
+    $reflection = new \ReflectionClass($command);
+
+    $errorsProperty = $reflection->getProperty('errors');
+    $errorsProperty->setAccessible(true);
+    $errorsProperty->setValue($command, []);
+
+    $checkMethod = $reflection->getMethod('checkConflictingColumns');
+    $checkMethod->setAccessible(true);
+    $checkMethod->invoke($command, $model);
+
+    $errors = $errorsProperty->getValue($command);
+    $modelClass = $model::class;
+
+    expect($errors)->toHaveKey($modelClass);
+    expect($errors[$modelClass][0])->toContain("conflicting column 'url'");
 
     Schema::dropIfExists('models_with_url_column');
 });
 
-test('13. Check if exception is thrown when model has conflicting urls column', function () {
+test('13. urls:doctor detects conflicting urls column', function () {
     // Create a table with 'urls' column
     Schema::create('models_with_urls_column', function (Blueprint $table) {
         $table->increments('id');
@@ -219,33 +232,46 @@ test('13. Check if exception is thrown when model has conflicting urls column', 
         $table->string('urls');
     });
 
-    // Create a model class that uses HasUniqueUrls trait
-    // The exception should be thrown during model instantiation
-    expect(function () {
-        $modelClass = new class () extends \Illuminate\Database\Eloquent\Model {
-            use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
+    // Create a test model instance
+    $model = new class () extends \Illuminate\Database\Eloquent\Model {
+        use \Vlados\LaravelUniqueUrls\HasUniqueUrls;
 
-            protected $table = 'models_with_urls_column';
-            protected $guarded = [];
-            public $timestamps = false;
+        protected $table = 'models_with_urls_column';
+        protected $guarded = [];
+        public $timestamps = false;
 
-            public function urlHandler(): array
-            {
-                return [
-                    'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
-                    'method' => 'view',
-                    'arguments' => [],
-                ];
-            }
+        public function urlHandler(): array
+        {
+            return [
+                'controller' => \Vlados\LaravelUniqueUrls\Tests\TestUrlHandler::class,
+                'method' => 'view',
+                'arguments' => [],
+            ];
+        }
 
-            public function urlStrategy($language, $locale): string
-            {
-                return \Illuminate\Support\Str::slug($this->name);
-            }
-        };
+        public function urlStrategy($language, $locale): string
+        {
+            return \Illuminate\Support\Str::slug($this->name);
+        }
+    };
 
-        $modelClass::create(['name' => 'test', 'urls' => 'test-urls']);
-    })->toThrow(Exception::class, "has a conflicting column 'urls'");
+    // Test the doctor command's check directly
+    $command = new \Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand();
+    $reflection = new \ReflectionClass($command);
+
+    $errorsProperty = $reflection->getProperty('errors');
+    $errorsProperty->setAccessible(true);
+    $errorsProperty->setValue($command, []);
+
+    $checkMethod = $reflection->getMethod('checkConflictingColumns');
+    $checkMethod->setAccessible(true);
+    $checkMethod->invoke($command, $model);
+
+    $errors = $errorsProperty->getValue($command);
+    $modelClass = $model::class;
+
+    expect($errors)->toHaveKey($modelClass);
+    expect($errors[$modelClass][0])->toContain("conflicting column 'urls'");
 
     Schema::dropIfExists('models_with_urls_column');
 });

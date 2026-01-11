@@ -2,6 +2,47 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v1.1.2 - 2026-01-11
+
+### Performance Improvement
+
+This release moves the conflicting column validation from runtime to the `urls:doctor` command, eliminating redundant database schema queries on every model instantiation.
+
+#### What Changed
+
+Previously, every time a model using the `HasUniqueUrls` trait was instantiated, 2 schema queries were executed to check for conflicting `url` and `urls` columns. In loops or batch operations, this caused significant overhead.
+
+Now, this validation only runs when you explicitly call:
+
+```bash
+php artisan urls:doctor
+
+```
+#### Migration Guide
+
+No changes required. The check is now part of the `urls:doctor` command, which you can run:
+
+- During development to catch misconfigurations
+- In your CI pipeline before deployment
+
+#### Changes
+
+- **Removed** `initializeHasUniqueUrls()`, `checkForConflictingAttributes()`, and `hasColumn()` from `HasUniqueUrls` trait
+- **Added** `checkConflictingColumns()` to `UrlsDoctorCommand`
+- **Updated** tests to verify the doctor command catches conflicts
+
+#### Performance Impact
+
+| Scenario | Before | After |
+|----------|--------|-------|
+| Single model instantiation | 2 schema queries | 0 queries |
+| Loop with 1000 models | 2000 schema queries | 0 queries |
+
+
+---
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v1.1.1...v1.1.2
+
 ## v1.1.1 - 2025-12-03
 
 **Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v1.1.0...v1.1.1

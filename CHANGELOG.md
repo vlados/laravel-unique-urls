@@ -2,6 +2,36 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v1.1.3 - 2026-01-11
+
+### Laravel 12 Compatibility
+
+This release fixes compatibility with Laravel 12.
+
+#### What Changed
+
+The `asJson()` method signature changed in Laravel 12 to include a new `$flags` parameter:
+
+```php
+// Laravel 11
+protected function asJson($value): string|false
+
+// Laravel 12
+protected function asJson($value, $flags = 0): string|false
+
+```
+This update ensures the package works with both Laravel 11 and Laravel 12.
+
+#### Supported Versions
+
+- **Laravel:** 9, 10, 11, 12
+- **PHP:** 8.1, 8.2, 8.3, 8.4
+
+
+---
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v1.1.2...v1.1.3
+
 ## v1.1.2 - 2026-01-11
 
 ### Performance Improvement
@@ -16,6 +46,7 @@ Now, this validation only runs when you explicitly call:
 
 ```bash
 php artisan urls:doctor
+
 
 ```
 #### Migration Guide

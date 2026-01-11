@@ -48,9 +48,28 @@ class UrlsDoctorCommand extends Command
 
     private function check(Model $model): void
     {
+        $this->checkConflictingColumns($model);
         $this->checkParams($model);
         $this->checkUrlHandler($model);
         $this->checkUrlStrategy($model);
+    }
+
+    private function checkConflictingColumns(Model $model): void
+    {
+        $modelName = $model::class;
+        $conflictingColumns = ['url', 'urls'];
+
+        foreach ($conflictingColumns as $column) {
+            try {
+                if ($model->getConnection()->getSchemaBuilder()->hasColumn($model->getTable(), $column)) {
+                    $this->errors[$modelName][] = "Model has a conflicting column '{$column}'. " .
+                        "The HasUniqueUrls trait uses 'urls' as a relationship name and provides 'relative_url' and 'absolute_url' attributes. " .
+                        "Please rename the '{$column}' column to avoid conflicts.";
+                }
+            } catch (\Exception $e) {
+                // Skip if schema check fails
+            }
+        }
     }
 
     /**

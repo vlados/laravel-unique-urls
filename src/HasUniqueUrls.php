@@ -20,55 +20,6 @@ trait HasUniqueUrls
     abstract public function urlHandler(): array;
 
     /**
-     * Initialize the HasUniqueUrls trait for an instance.
-     *
-     * @throws Exception
-     */
-    public function initializeHasUniqueUrls(): void
-    {
-        $this->checkForConflictingAttributes();
-    }
-
-    /**
-     * Check if the model has conflicting 'url' or 'urls' attributes.
-     *
-     * @throws Exception
-     */
-    private function checkForConflictingAttributes(): void
-    {
-        $conflictingAttributes = ['url', 'urls'];
-        $modelClass = get_class($this);
-
-        foreach ($conflictingAttributes as $attribute) {
-            // Check if attribute exists in fillable, guarded, or as a database column
-            if ($this->hasColumn($attribute)) {
-                throw new Exception(
-                    "Model [{$modelClass}] has a conflicting column '{$attribute}'. " .
-                    "The HasUniqueUrls trait uses 'urls' as a relationship name and provides 'relative_url' and 'absolute_url' attributes. " .
-                    "Please rename the '{$attribute}' column in your model to avoid conflicts."
-                );
-            }
-        }
-    }
-
-    /**
-     * Check if the model has a specific column.
-     */
-    private function hasColumn(string $column): bool
-    {
-        try {
-            // Check if the table exists and has the column
-            if ($this->getConnection()->getSchemaBuilder()->hasColumn($this->getTable(), $column)) {
-                return true;
-            }
-        } catch (\Exception $e) {
-            // If we can't check the schema (e.g., during testing without migrations), skip the check
-        }
-
-        return false;
-    }
-
-    /**
      * Generate a unique URL for the model.
      *
      * @throws Exception

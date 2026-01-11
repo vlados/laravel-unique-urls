@@ -438,18 +438,63 @@ If a model has `isAutoGenerateUrls()` returning false, you'll see:
 ```
 
 ### urls:doctor
-This command checks if all models have implemented the HasUniqueUrls trait and required functions correctly.
+This command validates your model configuration and detects common issues before they cause problems in production. Run it during development or in your CI pipeline.
 
 #### Usage:
 ```bash
 php artisan urls:doctor [--model=ModelName]
 ```
 
-#### Checks:
-- Verifies all required methods are implemented with correct parameters
-- Validates that urlHandler() returns correct controller and method
-- Checks if urlStrategy() generates unique URLs for all languages
-- Detects common implementation issues
+#### Examples:
+```bash
+# Check all models using HasUniqueUrls trait
+php artisan urls:doctor
+
+# Check only a specific model
+php artisan urls:doctor --model=Product
+```
+
+#### What It Checks:
+
+| Check | Description |
+|-------|-------------|
+| **Conflicting columns** | Detects `url` or `urls` database columns that conflict with the trait |
+| **Method parameters** | Verifies `urlStrategy()` has correct parameters (`$language`, `$locale`) |
+| **urlHandler() output** | Validates returned array has `controller`, `method`, and `arguments` keys |
+| **Controller exists** | Checks that the specified controller class exists |
+| **Method exists** | Verifies the controller method exists |
+| **Multi-language URLs** | Ensures `urlStrategy()` generates different URLs for different languages |
+
+#### Example Output:
+```bash
+$ php artisan urls:doctor
+
+Errors for App\Models\Product
+ - Model has a conflicting column 'url'. The HasUniqueUrls trait uses 'urls'
+   as a relationship name and provides 'relative_url' and 'absolute_url'
+   attributes. Please rename the 'url' column to avoid conflicts.
+
+Errors for App\Models\Category
+ - The urlStrategy method in the App\Models\Category class does not have
+   the same parameters as in the HasUniqueUrls trait.
+```
+
+```bash
+$ php artisan urls:doctor
+
+Everything is ok
+```
+
+#### CI Integration:
+Add to your CI pipeline to catch configuration issues early:
+
+```yaml
+# .github/workflows/ci.yml
+- name: Validate URL configuration
+  run: php artisan urls:doctor
+```
+
+> **Note:** The conflicting column check was moved from runtime to this command in v1.1.2 for better performance. Previously, this check ran on every model instantiation.
 
 ## Common Issues
 

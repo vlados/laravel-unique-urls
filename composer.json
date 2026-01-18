@@ -1,78 +1,78 @@
 {
-    "name": "vlados/laravel-unique-urls",
-    "description": "A package for using and generating unique urls for each Eloquent model in Laravel",
-    "keywords": [
-        "vlados",
-        "laravel",
-        "laravel-unique-urls"
-    ],
-    "homepage": "https://github.com/vlados/laravel-unique-urls",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "Vladislav Stoitsov",
-            "email": "dev@vladko.dev",
-            "role": "Developer"
-        }
-    ],
-    "require": {
-        "php": "^8.1",
-        "illuminate/contracts": "^9.0|^10.0|^11.0|^12.0",
-        "spatie/laravel-model-info": "^1.4|^2.0",
-        "spatie/laravel-package-tools": "^1.9.2|^2.0",
-        "spatie/laravel-translatable": "^6.0|^7.0"
-    },
-    "require-dev": {
-        "friendsofphp/php-cs-fixer": "^3.8",
-        "larastan/larastan": "^2.0|^3.0",
-        "nunomaduro/collision": "^6.0|^7.0|^8.0",
-        "nunomaduro/phpinsights": "^2.4",
-        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
-        "pestphp/pest": "^2.0|^3.0",
-        "pestphp/pest-plugin-faker": "^2.0|^3.0",
-        "pestphp/pest-plugin-laravel": "^2.0|^3.0",
-        "phpstan/extension-installer": "^1.1",
-        "phpstan/phpstan-deprecation-rules": "^1.0|^2.0",
-        "phpstan/phpstan-phpunit": "^1.0|^2.0",
-        "phpunit/phpunit": "^10.0|^11.0",
-        "spatie/laravel-ray": "^1.26"
-    },
-    "autoload": {
-        "psr-4": {
-            "Vlados\\LaravelUniqueUrls\\": "src",
-            "Vlados\\LaravelUniqueUrls\\Database\\Factories\\": "database/factories"
-        }
-    },
-    "autoload-dev": {
-        "psr-4": {
-            "Vlados\\LaravelUniqueUrls\\Tests\\": "tests"
-        }
-    },
-    "scripts": {
-        "analyse": "vendor/bin/phpstan analyse",
-        "test": "vendor/bin/pest",
-        "test-coverage": "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage",
-        "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes",
-        "release": "composer format && composer analyse && composer test"
-    },
-    "config": {
-        "sort-packages": true,
-        "allow-plugins": {
-            "pestphp/pest-plugin": true,
-            "phpstan/extension-installer": true,
-            "dealerdirect/phpcodesniffer-composer-installer": true
-        }
-    },
-    "extra": {
-        "laravel": {
-            "providers": [
-                "Vlados\\LaravelUniqueUrls\\LaravelUniqueUrlsServiceProvider"
-            ],
-            "aliases": {
-                "LaravelUniqueUrls": "Vlados\\LaravelUniqueUrls\\Facades\\LaravelUniqueUrls"
-            }
-        }
-    },
-    "minimum-stability": "dev",
-    "prefer-stable": true
+  "name": "vlados/laravel-unique-urls",
+  "description": "A package for using and generating unique urls for each Eloquent model in Laravel",
+  "keywords": [
+    "vlados",
+    "laravel",
+    "laravel-unique-urls"
+  ],
+  "homepage": "https://github.com/vlados/laravel-unique-urls",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Vladislav Stoitsov",
+      "email": "dev@vladko.dev",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "^8.1",
+    "illuminate/contracts": "12.47.0",
+    "spatie/laravel-model-info": "^1.4|^2.0",
+    "spatie/laravel-package-tools": "^1.9.2|^2.0",
+    "spatie/laravel-translatable": "^6.0|^7.0"
+  },
+  "require-dev": {
+    "friendsofphp/php-cs-fixer": "^3.8",
+    "larastan/larastan": "^2.0|^3.0",
+    "nunomaduro/collision": "^6.0|^7.0|^8.0",
+    "nunomaduro/phpinsights": "^2.4",
+    "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
+    "pestphp/pest": "^2.0|^3.0",
+    "pestphp/pest-plugin-faker": "^2.0|^3.0",
+    "pestphp/pest-plugin-laravel": "^2.0|^3.0",
+    "phpstan/extension-installer": "^1.1",
+    "phpstan/phpstan-deprecation-rules": "^1.0|^2.0",
+    "phpstan/phpstan-phpunit": "^1.0|^2.0",
+    "phpunit/phpunit": "^10.0|^11.0",
+    "spatie/laravel-ray": "^1.26"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vlados\\LaravelUniqueUrls\\": "src",
+      "Vlados\\LaravelUniqueUrls\\Database\\Factories\\": "database/factories"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Vlados\\LaravelUniqueUrls\\Tests\\": "tests"
+    }
+  },
+  "scripts": {
+    "analyse": "vendor/bin/phpstan analyse",
+    "test": "vendor/bin/pest",
+    "test-coverage": "XDEBUG_MODE=coverage ./vendor/bin/pest --coverage",
+    "format": "vendor/bin/php-cs-fixer fix --allow-risky=yes",
+    "release": "composer format && composer analyse && composer test"
+  },
+  "config": {
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true,
+      "phpstan/extension-installer": true,
+      "dealerdirect/phpcodesniffer-composer-installer": true
+    }
+  },
+  "extra": {
+    "laravel": {
+      "providers": [
+        "Vlados\\LaravelUniqueUrls\\LaravelUniqueUrlsServiceProvider"
+      ],
+      "aliases": {
+        "LaravelUniqueUrls": "Vlados\\LaravelUniqueUrls\\Facades\\LaravelUniqueUrls"
+      }
+    }
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true
 }

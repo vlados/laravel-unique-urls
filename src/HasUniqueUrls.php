@@ -17,6 +17,8 @@ trait HasUniqueUrls
 
     private bool $autoGenerateUrls = true;
 
+    private static bool $urlGenerationEnabled = true;
+
     abstract public function urlHandler(): array;
 
     /**
@@ -109,12 +111,33 @@ trait HasUniqueUrls
 
     public function isAutoGenerateUrls(): bool
     {
-        return $this->autoGenerateUrls;
+        return $this->autoGenerateUrls && static::$urlGenerationEnabled;
     }
 
     public function disableGeneratingUrlsOnCreate(): void
     {
         $this->autoGenerateUrls = false;
+    }
+
+    public static function disableUrlGeneration(): void
+    {
+        static::$urlGenerationEnabled = false;
+    }
+
+    public static function enableUrlGeneration(): void
+    {
+        static::$urlGenerationEnabled = true;
+    }
+
+    public static function withoutGeneratingUrls(callable $callback): mixed
+    {
+        static::disableUrlGeneration();
+
+        try {
+            return $callback();
+        } finally {
+            static::enableUrlGeneration();
+        }
     }
 
     protected static function bootHasUniqueUrls(): void

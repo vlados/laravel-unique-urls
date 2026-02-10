@@ -2,6 +2,34 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v1.2.0 - 2026-02-10
+
+### What's New
+
+#### Static URL generation toggle for bulk operations
+
+Added static methods to `HasUniqueUrls` trait for globally disabling/enabling URL auto-generation during bulk imports:
+
+- `Model::disableUrlGeneration()` — suppress per-model URL generation
+- `Model::enableUrlGeneration()` — re-enable per-model URL generation
+- `Model::withoutGeneratingUrls(callable $callback)` — disable for the duration of a callback
+
+This follows the same pattern as Laravel Scout's `withoutSyncingToSearch()`, allowing import jobs to skip per-row URL generation and handle it in batch at the end.
+
+#### Example
+
+```php
+Product::withoutGeneratingUrls(function () {
+    // Import thousands of products without generating URLs per-save
+    foreach ($products as $data) {
+        Product::updateOrCreate(['id' => $data->id], $data);
+    }
+});
+
+// Generate URLs in batch after import
+Product::generateUrlsInBatch(Product::all());
+
+```
 ## v1.1.3 - 2026-01-11
 
 ### Laravel 12 Compatibility
@@ -18,14 +46,15 @@ protected function asJson($value): string|false
 
 // Laravel 12
 protected function asJson($value, $flags = 0): string|false
-```
 
+```
 This update ensures the package works with both Laravel 11 and Laravel 12.
 
 #### Supported Versions
 
 - **Laravel:** 9, 10, 11, 12
 - **PHP:** 8.1, 8.2, 8.3, 8.4
+
 
 ---
 
@@ -45,6 +74,7 @@ Now, this validation only runs when you explicitly call:
 
 ```bash
 php artisan urls:doctor
+
 
 
 ```

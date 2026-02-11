@@ -26,10 +26,25 @@ class LaravelUniqueUrlsController
      */
     public function handleRequest(Url $urlObj, Request $request)
     {
-        if (! (isset($urlObj->controller) && class_exists($urlObj->controller))) {
+        if (! isset($urlObj->controller)) {
             abort(404);
         }
+
         app()->setLocale($urlObj->language);
+
+        // Livewire SFC component name resolution (kebab-case, no backslashes)
+        if ($this->isLivewireComponentName($urlObj->controller)) {
+            $instance = app('livewire')->new($urlObj->controller);
+            $request->route()->setParameter('arguments', $urlObj->getAttribute('arguments') ?? []);
+            $this->sharedDataService->setData($urlObj);
+
+            return app()->call([$instance, '__invoke']);
+        }
+
+        // Existing FQCN resolution (backward compat for non-Livewire controllers)
+        if (! class_exists($urlObj->controller)) {
+            abort(404);
+        }
 
         $slugController = app($urlObj->controller);
         $arguments = $urlObj->getAttribute('arguments') ?? [];
@@ -43,6 +58,16 @@ class LaravelUniqueUrlsController
         }
 
         abort(404);
+    }
+
+    /**
+     * Determine if the controller value is a Livewire component name (not a FQCN).
+     * Component names are kebab-case, possibly dot-separated (e.g., 'view-category').
+     * FQCNs contain backslashes (e.g., 'App\Livewire\ViewCategory').
+     */
+    private function isLivewireComponentName(string $controller): bool
+    {
+        return ! str_contains($controller, '\\');
     }
 
     private function callControllerMethod($slugController, Url $urlObj, Request $request, array $arguments)

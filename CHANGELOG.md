@@ -2,6 +2,29 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v2.0.0 - 2026-02-12
+
+### Breaking Changes
+
+- **Minimum PHP version raised to 8.2** (was 8.1)
+- **Dropped Laravel 9 and 10 support** — now requires Laravel 11 or 12
+- Updated minimum versions for dev dependencies: Pest 3, PHPUnit 11, Larastan 3
+
+### What's New
+
+#### Livewire SFC component name resolution
+
+Livewire Single File Components (SFCs) use kebab-case names (e.g. `counter`) rather than fully-qualified class names. The `handleRequest` method now detects these and resolves them via `app('livewire')->new()`, preserving backward compatibility for FQCN-based controllers.
+
+### Supported Versions
+
+- **Laravel:** 11, 12
+- **PHP:** 8.2, 8.3, 8.4
+
+---
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v1.2.0...v2.0.0
+
 ## v1.2.0 - 2026-02-10
 
 ### What's New

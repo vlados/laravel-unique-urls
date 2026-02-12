@@ -18,9 +18,9 @@
     "require": {
         "php": "^8.2",
         "illuminate/contracts": "^11.0|^12.0",
-        "spatie/laravel-model-info": "^1.4|^2.0",
-        "spatie/laravel-package-tools": "^1.9.2|^2.0",
-        "spatie/laravel-translatable": "^6.0|^7.0"
+        "spatie/laravel-model-info": "^2.0",
+        "spatie/laravel-package-tools": "^1.9.2",
+        "spatie/laravel-translatable": "^6.0"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.8",

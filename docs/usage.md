@@ -183,4 +183,29 @@ public function urlHandler(): array
 }
 ```
 
-The package detects names without backslashes and resolves them via `app('livewire')->new()`.
+The default resolver tries `class_exists()` first, then falls back to `app('livewire')->new()` when Livewire is installed.
+
+## Custom Controller Resolution (v2.1+)
+
+Controller resolution is handled by the `ControllerResolver` contract. The default implementation supports both FQCNs and Livewire component names. To customize resolution (e.g. for Inertia or other frameworks), bind your own implementation:
+
+```php
+use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
+
+// In your AppServiceProvider::register()
+$this->app->singleton(ControllerResolver::class, MyCustomResolver::class);
+```
+
+Your resolver must implement a single method:
+
+```php
+use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
+
+class MyCustomResolver implements ControllerResolver
+{
+    public function resolve(string $controller): ?object
+    {
+        // Return an object instance or null for 404
+    }
+}
+```

@@ -2,6 +2,36 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v2.1.0 - 2026-02-12
+
+### What's New
+
+#### Pluggable ControllerResolver
+
+Controller resolution is now delegated to a `ControllerResolver` contract, making the package fully extensible without modifying its source.
+
+- **`Contracts\ControllerResolver`** — interface with a single `resolve(string $controller): ?object` method
+- **`Resolvers\DefaultControllerResolver`** — ships with the package; resolves FQCNs via `class_exists()` and Livewire component names via `app('livewire')->new()` (only when Livewire is installed)
+- Bound as a singleton with `singletonIf`, so apps can override it by binding their own implementation before the package boots
+
+#### Upgrading from v2.0.x
+
+No breaking changes. The default resolver handles both FQCNs and Livewire component names out of the box. The inline `isLivewireComponentName()` check from v2.0.0 has been replaced by the resolver.
+
+To provide custom resolution logic (e.g. Inertia, custom routing):
+
+```php
+// AppServiceProvider::register()
+$this->app->singleton(
+    \Vlados\LaravelUniqueUrls\Contracts\ControllerResolver::class,
+    \App\Services\MyCustomResolver::class,
+);
+```
+
+---
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v2.0.1...v2.1.0
+
 ## v2.0.1 - 2026-02-12
 
 ### Documentation

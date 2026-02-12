@@ -2,6 +2,19 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## v2.0.1 - 2026-02-12
+
+### Documentation
+
+- Restructured README into a focused quick-start (~100 lines) with detailed docs moved to `docs/` folder
+- Added six dedicated docs pages: configuration, usage, bulk operations, artisan commands, testing, troubleshooting
+- Fixed stale version line (now correctly shows PHP 8.2+ | Laravel 11, 12)
+- Documented Livewire SFC component name resolution and previously undocumented `withoutGeneratingUrls()` helper
+
+---
+
+**Full Changelog**: https://github.com/vlados/laravel-unique-urls/compare/v2.0.0...v2.0.1
+
 ## v2.0.0 - 2026-02-12
 
 ### Breaking Changes

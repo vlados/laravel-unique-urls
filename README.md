@@ -1,8 +1,8 @@
 # Unique Urls for Laravel
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/vlados/laravel-unique-urls.svg?style=flat-square)](https://packagist.org/packages/vlados/laravel-unique-urls)
-[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/vlados/laravel-unique-urls/run-tests?label=tests)](https://github.com/vlados/laravel-unique-urls/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/vlados/laravel-unique-urls/Check%20&%20fix%20styling?label=code%20style)](https://github.com/vlados/laravel-unique-urls/actions?query=workflow%3A"Check+%26+fix+styling"+branch%3Amain)
+[![GitHub Tests Action Status](https://img.shields.io/github/actions/workflow/status/vlados/laravel-unique-urls/run-tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/vlados/laravel-unique-urls/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/actions/workflow/status/vlados/laravel-unique-urls/php-cs-fixer.yml?branch=main&label=code%20style&style=flat-square)](https://github.com/vlados/laravel-unique-urls/actions?query=workflow%3Aphp-cs-fixer+branch%3Amain)
 [![Total Downloads](https://img.shields.io/packagist/dt/vlados/laravel-unique-urls.svg?style=flat-square)](https://packagist.org/packages/vlados/laravel-unique-urls)
 [![PHP Insights](https://github.com/vlados/laravel-unique-urls/actions/workflows/insights.yaml/badge.svg)](https://github.com/vlados/laravel-unique-urls/actions/workflows/insights.yaml)
 [![PHPStan](https://github.com/vlados/laravel-unique-urls/actions/workflows/phpstan.yml/badge.svg)](https://github.com/vlados/laravel-unique-urls/actions/workflows/phpstan.yml)

@@ -8,6 +8,7 @@ use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Redirector;
+use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
 use Vlados\LaravelUniqueUrls\Models\Url;
 use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 
@@ -15,9 +16,12 @@ class LaravelUniqueUrlsController
 {
     private SharedDataService $sharedDataService;
 
-    public function __construct(SharedDataService $sharedDataService)
+    private ControllerResolver $controllerResolver;
+
+    public function __construct(SharedDataService $sharedDataService, ControllerResolver $controllerResolver)
     {
         $this->sharedDataService = $sharedDataService;
+        $this->controllerResolver = $controllerResolver;
     }
 
     /**
@@ -30,23 +34,14 @@ class LaravelUniqueUrlsController
             abort(404);
         }
 
-        app()->setLocale($urlObj->language);
+        $slugController = $this->controllerResolver->resolve($urlObj->controller);
 
-        // Livewire SFC component name resolution (kebab-case, no backslashes)
-        if ($this->isLivewireComponentName($urlObj->controller)) {
-            $instance = app('livewire')->new($urlObj->controller);
-            $request->route()->setParameter('arguments', $urlObj->getAttribute('arguments') ?? []);
-            $this->sharedDataService->setData($urlObj);
-
-            return app()->call([$instance, '__invoke']);
-        }
-
-        // Existing FQCN resolution (backward compat for non-Livewire controllers)
-        if (! class_exists($urlObj->controller)) {
+        if ($slugController === null) {
             abort(404);
         }
 
-        $slugController = app($urlObj->controller);
+        app()->setLocale($urlObj->language);
+
         $arguments = $urlObj->getAttribute('arguments') ?? [];
 
         $called = $this->callControllerMethod($slugController, $urlObj, $request, $arguments);
@@ -58,16 +53,6 @@ class LaravelUniqueUrlsController
         }
 
         abort(404);
-    }
-
-    /**
-     * Determine if the controller value is a Livewire component name (not a FQCN).
-     * Component names are kebab-case, possibly dot-separated (e.g., 'view-category').
-     * FQCNs contain backslashes (e.g., 'App\Livewire\ViewCategory').
-     */
-    private function isLivewireComponentName(string $controller): bool
-    {
-        return ! str_contains($controller, '\\');
     }
 
     private function callControllerMethod($slugController, Url $urlObj, Request $request, array $arguments)

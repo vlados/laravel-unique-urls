@@ -8,6 +8,8 @@ use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 use Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand;
 use Vlados\LaravelUniqueUrls\Commands\UrlsGenerateCommand;
+use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
+use Vlados\LaravelUniqueUrls\Resolvers\DefaultControllerResolver;
 use Vlados\LaravelUniqueUrls\Services\SharedDataService;
 
 class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
@@ -17,6 +19,9 @@ class LaravelUniqueUrlsServiceProvider extends PackageServiceProvider
         $this->app->singleton(SharedDataService::class, function ($app) {
             return new SharedDataService();
         });
+
+        $this->app->singletonIf(ControllerResolver::class, DefaultControllerResolver::class);
+
         parent::register();
     }
 

@@ -28,7 +28,7 @@
         "nunomaduro/collision": "^8.0",
         "nunomaduro/phpinsights": "^2.4",
         "orchestra/testbench": "^9.0|^10.0",
-        "pestphp/pest": "^3.0",
+        "pestphp/pest": "^4.4.5",
         "pestphp/pest-plugin-faker": "^3.0",
         "pestphp/pest-plugin-laravel": "^3.0",
         "phpstan/extension-installer": "^1.1",

@@ -7,18 +7,26 @@ namespace Vlados\LaravelUniqueUrls\Commands;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use ReflectionMethod;
-use Spatie\ModelInfo\ModelFinder;
+use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
 use Vlados\LaravelUniqueUrls\HasUniqueUrls;
+use Vlados\LaravelUniqueUrls\Services\ModelDiscoveryService;
 
 class UrlsDoctorCommand extends Command
 {
     public $signature = 'urls:doctor
         {--model= : Specify only a model for which to execute the command}
+        {--strict : Exit with a failure code when no models were found to check}
     ';
 
-    public $description = 'Generate unique urls';
+    public $description = 'Check the URL configuration of every model using the HasUniqueUrls trait';
+
     private $errors = [];
+
+    private int $checked = 0;
+
+    private bool $scannedAllPaths = false;
 
     /**
      * @throws \Throwable
@@ -26,9 +34,29 @@ class UrlsDoctorCommand extends Command
     public function handle(): int
     {
         if ($model = $this->option('model')) {
-            $this->check(app('\\App\\Models\\' . $model));
+            $modelClass = app(ModelDiscoveryService::class)->qualify((string) $model);
+
+            if (! class_exists($modelClass)) {
+                $this->error("Model class {$modelClass} not found");
+
+                return self::FAILURE;
+            }
+
+            $instance = app($modelClass);
+
+            if (! $instance instanceof Model) {
+                $this->error("Class {$modelClass} is not an Eloquent model");
+
+                return self::FAILURE;
+            }
+
+            $this->checked++;
+            $this->check($instance);
         } else {
+            $this->scannedAllPaths = true;
+
             $this->getModels()->each(function ($model): void {
+                $this->checked++;
                 $this->check(app($model));
             });
         }
@@ -38,9 +66,9 @@ class UrlsDoctorCommand extends Command
 
     public function getModels(): Collection
     {
-        $models = ModelFinder::all()
+        $models = app(ModelDiscoveryService::class)->models()
             ->filter(static function ($class) {
-                return method_exists($class, 'urls') && in_array(HasUniqueUrls::class, class_uses($class));
+                return method_exists($class, 'urls') && in_array(HasUniqueUrls::class, class_uses_recursive($class));
             });
 
         return $models->values();
@@ -96,10 +124,17 @@ class UrlsDoctorCommand extends Command
         }
 
         if (! $parametersMatch) {
-            $this->errors[$modelName][] = "The urlStrategy method in the ${modelName} class does not have the same parameters as in the HasUniqueUrls trait.";
+            $this->errors[$modelName][] = "The urlStrategy method in the {$modelName} class does not have the same parameters as in the HasUniqueUrls trait.";
         }
     }
 
+    /**
+     * Validate the handler the same way a live request resolves it: through the
+     * ControllerResolver (which also knows Livewire component names), then via
+     * the dispatch chain of LaravelUniqueUrlsController — __invoke() for the
+     * Livewire style, otherwise the declared method with show()/index() as
+     * fallbacks.
+     */
     private function checkUrlHandler(Model $model): void
     {
         if (! method_exists($model, 'urlHandler')) {
@@ -120,14 +155,45 @@ class UrlsDoctorCommand extends Command
             return;
         }
 
-        if (! class_exists($urlHandlerResult['controller'])) {
-            $this->errors[$modelName][] = "The class {$urlHandlerResult['controller']} does not exist";
+        $controller = $urlHandlerResult['controller'];
+
+        if (! is_string($controller) || trim($controller) === '') {
+            $this->errors[$modelName][] = 'The urlHandler controller must be a non-empty string';
+
+            return;
         }
 
-        $method = $urlHandlerResult['method'] ?: '__invoke';
-        if (! method_exists($urlHandlerResult['controller'], $method)) {
-            $this->errors[$modelName][] = "The method {$urlHandlerResult['controller']}:{$method} does not exist";
+        $instance = app(ControllerResolver::class)->resolve($controller);
+
+        if ($instance === null) {
+            $this->errors[$modelName][] = "The controller {$controller} could not be resolved. It is neither an existing class nor a resolvable Livewire component.";
+
+            return;
         }
+
+        $method = (string) $urlHandlerResult['method'];
+
+        // Livewire style: an empty method means the component is invoked.
+        if ($method === '' && method_exists($instance, '__invoke')) {
+            return;
+        }
+
+        $candidates = array_values(array_filter([$method, 'show', 'index']));
+
+        foreach ($candidates as $candidate) {
+            if (method_exists($instance, $candidate)) {
+                return;
+            }
+        }
+
+        if ($method === '') {
+            $this->errors[$modelName][] = "The controller {$controller} has an empty method and none of __invoke(), show() or index() to fall back to";
+
+            return;
+        }
+
+        $this->errors[$modelName][] = "The controller {$controller} has none of the methods: " .
+            implode('(), ', $candidates) . '()';
     }
 
     private function checkUrlStrategy(Model $model): void
@@ -157,6 +223,10 @@ class UrlsDoctorCommand extends Command
 
     private function outputErrors(): int
     {
+        if ($this->checked === 0) {
+            return $this->reportNothingChecked();
+        }
+
         if (count($this->errors)) {
             foreach ($this->errors as $model => $errors) {
                 $this->error("Errors for {$model}");
@@ -165,11 +235,48 @@ class UrlsDoctorCommand extends Command
                 }
             }
 
+            $this->newLine();
+            $this->line($this->scopeSummary());
+
             return self::FAILURE;
         }
 
-        $this->comment('Everything is ok');
+        $this->comment('Everything is ok — ' . $this->scopeSummary());
 
         return self::SUCCESS;
+    }
+
+    /**
+     * Never report health without saying what was looked at: an empty scan is
+     * a configuration problem, not a clean bill of health.
+     */
+    private function reportNothingChecked(): int
+    {
+        $paths = app(ModelDiscoveryService::class)->paths();
+
+        $this->warn('No models using the HasUniqueUrls trait were found — nothing was checked.');
+        $this->warn('Scanned ' . count($paths) . ' ' . Str::plural('path', count($paths)) . ':');
+
+        foreach ($paths as $source) {
+            $namespace = $source['namespace'] === '' ? '<application namespace>' : $source['namespace'] . '\\';
+            $this->warn("  - {$source['path']} → {$namespace}");
+        }
+
+        $this->warn('Add the directory to the unique-urls.model_paths config if your models live somewhere else.');
+
+        return $this->option('strict') ? self::FAILURE : self::SUCCESS;
+    }
+
+    private function scopeSummary(): string
+    {
+        $summary = "checked {$this->checked} " . Str::plural('model', $this->checked);
+
+        if (! $this->scannedAllPaths) {
+            return $summary;
+        }
+
+        $paths = count(app(ModelDiscoveryService::class)->paths());
+
+        return $summary . " in {$paths} " . Str::plural('path', $paths);
     }
 }

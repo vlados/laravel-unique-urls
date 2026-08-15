@@ -6,8 +6,8 @@ namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
-use Spatie\ModelInfo\ModelFinder;
 use Vlados\LaravelUniqueUrls\Models\Url;
+use Vlados\LaravelUniqueUrls\Services\ModelDiscoveryService;
 
 class UrlsGenerateCommand extends Command
 {
@@ -25,6 +25,7 @@ class UrlsGenerateCommand extends Command
     protected int $totalSkipped = 0;
     protected int $totalFailed = 0;
     protected float $startTime;
+    protected ?string $targetModel = null;
 
     /**
      * @throws \Throwable
@@ -35,6 +36,7 @@ class UrlsGenerateCommand extends Command
         $this->totalGenerated = 0;
         $this->totalSkipped = 0;
         $this->totalFailed = 0;
+        $this->targetModel = $this->resolveTargetModel();
 
         if ($this->option('fresh')) {
             $this->deleteUrls();
@@ -165,7 +167,7 @@ class UrlsGenerateCommand extends Command
 
     public function getModels(): Collection
     {
-        $models = ModelFinder::all()
+        $models = app(ModelDiscoveryService::class)->models()
             ->filter(static function ($class) {
                 return method_exists($class, 'urls') && method_exists($class, 'generateUrl');
             });
@@ -173,14 +175,25 @@ class UrlsGenerateCommand extends Command
         return $models->values();
     }
 
+    /**
+     * Resolve the --model option to a fully qualified class name. Both a FQCN
+     * (App\Models\Page, Modules\Blog\Models\Post) and a bare class name living
+     * in App\Models are accepted.
+     */
+    private function resolveTargetModel(): ?string
+    {
+        $model = $this->option('model');
+
+        if (! is_string($model) || $model === '') {
+            return null;
+        }
+
+        return app(ModelDiscoveryService::class)->qualify($model);
+    }
+
     private function processModels(): void
     {
-        if ($model = $this->option('model')) {
-            // Handle both full class name and short name
-            $modelClass = str_contains($model, '\\')
-                ? $model
-                : '\\App\\Models\\' . $model;
-
+        if ($modelClass = $this->targetModel) {
             $this->generateUrls($modelClass);
         } else {
             $models = $this->getModels();
@@ -202,13 +215,9 @@ class UrlsGenerateCommand extends Command
 
     private function deleteUrls(): void
     {
-        if ($model = $this->option('model')) {
-            $modelClass = str_contains($model, '\\')
-                ? $model
-                : 'App\\Models\\' . $model;
-
+        if ($modelClass = $this->targetModel) {
             if ($this->output->isVerbose()) {
-                $this->info('Deleting all urls for model: ' . $model);
+                $this->info('Deleting all urls for model: ' . $modelClass);
             }
 
             $count = Url::whereHasMorph('related', [$modelClass])->delete();

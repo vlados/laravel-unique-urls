@@ -68,6 +68,23 @@ class TestCase extends Orchestra
             $table->integer("parent_id");
             $table->string('name')->nullable();
         });
+        Schema::create('module_models', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name')->nullable();
+        });
+        Schema::create('legacy_models', function (Blueprint $table) {
+            $table->increments('id');
+            $table->string('name')->nullable();
+        });
+    }
+
+    /**
+     * Absolute path of the fixture directory that mimics a modular project:
+     * Modules/TestModule/app/Models (nwidart v10+) and Modules/LegacyModule/Models.
+     */
+    protected function fixtureModulesPath(): string
+    {
+        return __DIR__ . '/Fixtures/Modules';
     }
 
     protected function getTempDirectory(): string

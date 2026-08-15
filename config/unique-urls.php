@@ -18,6 +18,24 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Model Paths
+    |--------------------------------------------------------------------------
+    |
+    | Directories scanned by urls:generate and urls:doctor when looking for
+    | models. Leave null (or empty) to auto-discover: the app/ directory plus
+    | every module under the modules directory (nwidart/laravel-modules is
+    | honoured when installed, otherwise base_path('Modules')).
+    |
+    | Set an array to take over completely. Entries may be:
+    |   base_path('src/Domain'),                 // namespace guessed from composer.json PSR-4
+    |   'App\Domain' => base_path('src/Domain'), // namespace root => directory
+    |   ['path' => ..., 'namespace' => ..., 'base_path' => ...],
+    |
+    */
+    'model_paths' => null,
+
+    /*
+    |--------------------------------------------------------------------------
     | Redirect HTTP Code
     |--------------------------------------------------------------------------
     |

@@ -45,7 +45,9 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Vlados\\LaravelUniqueUrls\\Tests\\": "tests"
+            "Vlados\\LaravelUniqueUrls\\Tests\\": "tests",
+            "Modules\\TestModule\\": "tests/Fixtures/Modules/TestModule/app/",
+            "Modules\\LegacyModule\\": "tests/Fixtures/Modules/LegacyModule/"
         }
     },
     "scripts": {

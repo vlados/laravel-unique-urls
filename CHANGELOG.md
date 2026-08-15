@@ -2,6 +2,68 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
+## Unreleased
+
+### What's New
+
+#### Module-aware model discovery
+
+`urls:generate` and `urls:doctor` scanned `app_path()` only — the default of
+Spatie's `ModelFinder` — so models living in a modular structure
+(`Modules/Blog/app/Models`) silently dropped out of both commands.
+
+- **`Services\ModelDiscoveryService`** — resolves which directories to scan,
+  together with the PSR-4 root and namespace prefix each one maps to
+- Default scan: `app/` plus every module under `config('modules.paths.modules')`
+  (or `base_path('Modules')` when [nwidart/laravel-modules](https://github.com/nWidart/laravel-modules)
+  is not installed), covering both the `Modules/{Module}/app` layout and the
+  older `Modules/{Module}/Models` and `Modules/{Module}/Entities` ones
+- New **`model_paths`** config key takes the list over completely, accepting a
+  bare directory (namespace guessed from the composer PSR-4 map), a
+  `'Namespace' => '/directory'` pair, or a full `path`/`base_path`/`namespace`
+  descriptor. Directories that do not exist are skipped.
+
+#### `urls:doctor` says what it actually checked
+
+An empty scan used to end in `Everything is ok`, which reads as health but only
+meant there was nothing left to check.
+
+- A clean run now ends with `Everything is ok — checked 12 models in 2 paths`
+- Finding no models prints a warning listing the scanned paths instead
+- New `--strict` flag turns that empty scan into a failure exit code for CI
+
+#### `--model` behaves the same in both commands
+
+`urls:doctor --model="Modules\Blog\Models\Post"` used to fail with
+`Target class [\App\Models\Modules\Blog\Models\Post] does not exist` while
+`urls:generate` accepted it. Both commands now take a fully qualified class
+name, still resolve a bare name against `App\Models`, and report a missing class
+as an error instead of throwing a container exception.
+
+#### `urlHandler` is validated the way a request resolves it
+
+The controller from `urlHandler()` is now resolved through the
+`ControllerResolver` — the component the live request uses — and the method check
+mirrors `LaravelUniqueUrlsController`: `__invoke()` for the Livewire style,
+otherwise the declared method with `show()` and `index()` as fallbacks.
+
+### Behaviour Changes
+
+- Doctor no longer reports a pinned Livewire component name as a missing class
+- Doctor no longer reports a handler relying on the `show()`/`index()` fallback
+  as broken
+- Doctor now also checks models that inherit the trait from a parent class
+  (`class_uses()` → `class_uses_recursive()`), so it may report on models it used
+  to skip
+
+#### Upgrading
+
+No configuration change is required: leaving `model_paths` unset — or absent from
+an already published config file — keeps the automatic behaviour, which is a
+superset of the previous `app/`-only scan.
+
+---
+
 ## v2.1.0 - 2026-02-12
 
 ### What's New

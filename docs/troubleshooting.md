@@ -75,6 +75,26 @@ Force generation for models with auto-generate disabled:
 php artisan urls:generate --model=Product --force
 ```
 
+## Models Outside `app/` Are Not Found
+
+Symptoms: `urls:generate` reports fewer models than you have, and `urls:doctor`
+finishes clean without ever mentioning the missing ones.
+
+Run the doctor and read the last line — it says how many models were checked and
+how many paths were scanned, and it lists those paths when the scan came up
+empty. If a directory is missing from that list, add it:
+
+```php
+// config/unique-urls.php
+'model_paths' => [
+    app_path(),
+    base_path('src/Domain'),
+],
+```
+
+Modules under `Modules/` are discovered automatically, so this is only needed for
+custom structures. See [Model paths](configuration.md#model-paths).
+
 ## Reserved Slug Errors
 
 ```

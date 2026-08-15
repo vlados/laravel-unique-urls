@@ -1,5 +1,10 @@
 # Artisan Commands
 
+Both commands look for models in the directories resolved from
+[`model_paths`](configuration.md#model-paths) — `app/` plus every module by
+default — so a model in `Modules/Blog/app/Models` is picked up just like one in
+`app/Models`.
+
 ## `urls:generate`
 
 Generate unique URLs for models that use the `HasUniqueUrls` trait.
@@ -27,7 +32,10 @@ php artisan urls:generate
 # Specific model
 php artisan urls:generate --model="App\Models\Product"
 
-# Only missing, short name
+# A model that lives in a module
+php artisan urls:generate --model="Modules\Blog\Models\Post"
+
+# Only missing, short name (resolved against App\Models)
 php artisan urls:generate --model=Product --only-missing
 
 # Fresh with custom chunk size
@@ -76,8 +84,15 @@ If `isAutoGenerateUrls()` returns false, you'll see a warning:
 Validate model configuration and detect common issues. Run during development or in CI.
 
 ```bash
-php artisan urls:doctor [--model=ModelName]
+php artisan urls:doctor [--model=ModelName] [--strict]
 ```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `--model=ModelName` | Check a single model (FQCN or short name) |
+| `--strict` | Exit with a failure code when no models were found to check |
 
 ### Checks
 
@@ -86,8 +101,8 @@ php artisan urls:doctor [--model=ModelName]
 | Conflicting columns | Detects `url` or `urls` columns that clash with the trait |
 | Method parameters | Verifies `urlStrategy()` has `$language` and `$locale` params |
 | urlHandler output | Validates array has `controller`, `method`, `arguments` keys |
-| Controller exists | Checks the specified controller class exists |
-| Method exists | Verifies the controller method exists |
+| Controller resolves | Resolves the controller through the `ControllerResolver`, so Livewire component names count as valid |
+| Method exists | Mirrors the request handler: `__invoke()` for the Livewire style, otherwise the declared method with `show()`/`index()` as fallbacks |
 | Multi-language URLs | Ensures `urlStrategy()` produces different slugs per language |
 
 ### Examples
@@ -98,6 +113,24 @@ php artisan urls:doctor
 
 # Check a specific model
 php artisan urls:doctor --model=Product
+php artisan urls:doctor --model="Modules\Blog\Models\Post"
+```
+
+### Output
+
+A clean run says how much was actually looked at:
+
+```
+Everything is ok — checked 12 models in 2 paths
+```
+
+When nothing matched, the command says so instead of reporting health:
+
+```
+No models using the HasUniqueUrls trait were found — nothing was checked.
+Scanned 1 path:
+  - /var/www/app → <application namespace>
+Add the directory to the unique-urls.model_paths config if your models live somewhere else.
 ```
 
 ### CI Integration
@@ -105,7 +138,7 @@ php artisan urls:doctor --model=Product
 ```yaml
 # .github/workflows/ci.yml
 - name: Validate URL configuration
-  run: php artisan urls:doctor
+  run: php artisan urls:doctor --strict
 ```
 
-The command exits with a non-zero code when errors are found, so it will fail your CI pipeline automatically.
+The command exits with a non-zero code when errors are found, so it will fail your CI pipeline automatically. `--strict` also fails the run when the scan found no models at all — usually a sign that `model_paths` no longer matches where the models live.

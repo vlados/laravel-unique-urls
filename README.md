@@ -20,6 +20,7 @@ Generate unique, prefix-free URLs for any Eloquent model — blogs, e-commerce, 
 - Livewire full-page component support (FQCN and SFC names)
 - Batch generation with progress tracking for large datasets
 - Slug validation and reserved-slug protection
+- Model discovery beyond `app/` — modular projects and custom paths included
 - `urls:doctor` command for configuration health checks
 
 ## Installation

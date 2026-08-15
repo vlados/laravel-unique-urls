@@ -52,6 +52,12 @@ The controller from `urlHandler()` is now resolved through the
 mirrors `LaravelUniqueUrlsController`: `__invoke()` for the Livewire style,
 otherwise the declared method with `show()` and `index()` as fallbacks.
 
+Resolving a controller builds it, which `class_exists()` never did, so a
+controller with an unresolvable dependency, a model that cannot be instantiated
+or a `urlStrategy()` that raises an `Error` are all recorded as errors instead of
+ending the run. One broken model no longer costs the coverage of every model
+after it.
+
 ### Behaviour Changes
 
 - Doctor no longer reports a pinned Livewire component name as a missing class

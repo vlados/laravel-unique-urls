@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 use Vlados\LaravelUniqueUrls\Commands\UrlsDoctorCommand;
 use Vlados\LaravelUniqueUrls\HasUniqueUrls;
+use Vlados\LaravelUniqueUrls\Tests\Fixtures\BrokenHandlerModel;
+use Vlados\LaravelUniqueUrls\Tests\Fixtures\ErrorInStrategyModel;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\ShowOnlyController;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\UnusableController;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
@@ -160,4 +162,32 @@ test('55. urls:doctor still reports a controller without any usable method', fun
 
     expect($errors)->toHaveCount(1)
         ->and($errors[0])->toContain('none of the methods');
+});
+
+// ============================================
+// One broken model must not end the run
+// ============================================
+
+test('59. A controller the container cannot build is an error, not a crash', function () use ($urlHandlerErrors, $modelWithHandler) {
+    // Resolving instantiates the controller, which class_exists() never did.
+    $errors = $urlHandlerErrors(new BrokenHandlerModel());
+
+    expect($errors)->toHaveCount(1)
+        ->and($errors[0])->toContain('could not be instantiated')
+        // The checker survived, so the next model still gets checked.
+        ->and($urlHandlerErrors($modelWithHandler(TestUrlHandler::class, 'view')))->toBe([]);
+
+    $exitCode = Artisan::call('urls:doctor', ['--model' => BrokenHandlerModel::class]);
+
+    expect($exitCode)->toBe(1)
+        ->and(Artisan::output())->toContain('could not be instantiated');
+});
+
+test('60. An Error raised by urlStrategy does not abort the run', function () {
+    // urlStrategy() on an empty instance often cannot build a slug; when that
+    // failure is an Error rather than an Exception it used to escape the check.
+    $exitCode = Artisan::call('urls:doctor', ['--model' => ErrorInStrategyModel::class]);
+
+    expect($exitCode)->toBe(0)
+        ->and(Artisan::output())->toContain('Everything is ok');
 });

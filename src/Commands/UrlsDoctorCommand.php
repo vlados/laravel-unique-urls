@@ -49,22 +49,12 @@ class UrlsDoctorCommand extends Command
                 return self::FAILURE;
             }
 
-            $instance = app($modelClass);
-
-            if (! $instance instanceof Model) {
-                $this->error("Class {$modelClass} is not an Eloquent model");
-
-                return self::FAILURE;
-            }
-
-            $this->checked++;
-            $this->check($instance);
+            $this->checkModel($modelClass);
         } else {
             $this->scannedAllPaths = true;
 
             $this->getModels()->each(function ($model): void {
-                $this->checked++;
-                $this->check(app($model));
+                $this->checkModel((string) $model);
             });
         }
 
@@ -79,6 +69,30 @@ class UrlsDoctorCommand extends Command
             });
 
         return $models->values();
+    }
+
+    /**
+     * Run every check for one model. A model that cannot be instantiated or
+     * blows up mid-check is recorded as an error rather than aborting the run:
+     * one broken model must not cost the coverage of all the others.
+     */
+    private function checkModel(string $modelClass): void
+    {
+        $this->checked++;
+
+        try {
+            $model = app($modelClass);
+
+            if (! $model instanceof Model) {
+                $this->errors[$modelClass][] = 'The class is not an Eloquent model';
+
+                return;
+            }
+
+            $this->check($model);
+        } catch (\Throwable $e) {
+            $this->errors[$modelClass][] = 'Checking this model failed: ' . $e->getMessage();
+        }
     }
 
     private function check(Model $model): void
@@ -170,7 +184,13 @@ class UrlsDoctorCommand extends Command
             return;
         }
 
-        $instance = app(ControllerResolver::class)->resolve($controller);
+        try {
+            $instance = app(ControllerResolver::class)->resolve($controller);
+        } catch (\Throwable $e) {
+            $this->errors[$modelName][] = "The controller {$controller} could not be instantiated: {$e->getMessage()}";
+
+            return;
+        }
 
         if ($instance === null) {
             $this->errors[$modelName][] = "The controller {$controller} could not be resolved. It is neither an existing class nor a resolvable Livewire component.";
@@ -223,8 +243,9 @@ class UrlsDoctorCommand extends Command
             if (count(array_unique($urlStrategyResult)) !== count($languages)) {
                 $this->errors[$modelName][] = 'The urlStrategy method is not implementing different strategies for different languages';
             }
-        } catch (\Exception $e) {
-            // do nothing
+        } catch (\Throwable $e) {
+            // An empty instance often cannot build a slug (missing relations,
+            // null attributes); that is not what this check is about.
         }
     }
 

@@ -105,6 +105,9 @@ php artisan urls:doctor [--model=ModelName] [--strict]
 | Method exists | Mirrors the request handler: `__invoke()` for the Livewire style, otherwise the declared method with `show()`/`index()` as fallbacks |
 | Multi-language URLs | Ensures `urlStrategy()` produces different slugs per language |
 
+A model that cannot be instantiated, or a check that blows up on one model, is
+reported as an error for that model — the remaining models are still checked.
+
 ### Examples
 
 ```bash

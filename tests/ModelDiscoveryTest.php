@@ -150,3 +150,38 @@ test('46. urls:generate --fresh --model only deletes urls of the given model', f
         ->and($other->urls()->orderBy('id')->pluck('id')->all())->toEqual($otherUrlIds)
         ->and(Url::where('related_type', TestModel::class)->count())->toBe(count($otherUrlIds));
 });
+
+// ============================================
+// Short --model names
+// ============================================
+
+test('56. A short model name falls back to the discovered models', function () use ($moduleModel) {
+    Config::set('modules.paths.modules', $this->fixtureModulesPath());
+
+    // App\Models\ModuleModel does not exist — the model lives in a module now.
+    expect(app(ModelDiscoveryService::class)->qualify('ModuleModel'))->toBe($moduleModel);
+});
+
+test('57. An ambiguous short model name is reported instead of guessed', function () {
+    Config::set('unique-urls.model_paths', [
+        __DIR__ . '/Fixtures/Modules/TestModule/app',
+        __DIR__ . '/Fixtures/OtherModules/DuplicateModule/app',
+    ]);
+
+    expect(fn () => app(ModelDiscoveryService::class)->qualify('ModuleModel'))
+        ->toThrow(InvalidArgumentException::class, 'matches more than one class');
+
+    $exitCode = Artisan::call('urls:generate', ['--model' => 'ModuleModel']);
+
+    expect($exitCode)->toBe(1)
+        ->and(Artisan::output())->toContain('matches more than one class');
+});
+
+test('58. An unknown short model name still reports the App\Models class', function () {
+    $exitCode = Artisan::call('urls:generate', ['--model' => 'ThereIsNoSuchModel']);
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(0)
+        ->and($output)->toContain('App\Models\ThereIsNoSuchModel')
+        ->and($output)->toContain('not found');
+});

@@ -17,7 +17,7 @@ php artisan urls:generate [options]
 
 | Option | Description |
 |--------|-------------|
-| `--model=ModelName` | Target a specific model (FQCN or short name) |
+| `--model=ModelName` | Target a specific model — a fully qualified class name, or a short name resolved against `App\Models` and then the discovered models |
 | `--fresh` | Truncate the URLs table and regenerate everything |
 | `--only-missing` | Skip models that already have URLs |
 | `--chunk-size=500` | Records per processing chunk (default: 500) |
@@ -35,7 +35,7 @@ php artisan urls:generate --model="App\Models\Product"
 # A model that lives in a module
 php artisan urls:generate --model="Modules\Blog\Models\Post"
 
-# Only missing, short name (resolved against App\Models)
+# Only missing, short name (App\Models first, then the discovered models)
 php artisan urls:generate --model=Product --only-missing
 
 # Fresh with custom chunk size

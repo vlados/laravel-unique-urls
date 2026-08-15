@@ -8,6 +8,7 @@ use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
+use InvalidArgumentException;
 use ReflectionMethod;
 use Vlados\LaravelUniqueUrls\Contracts\ControllerResolver;
 use Vlados\LaravelUniqueUrls\HasUniqueUrls;
@@ -34,7 +35,13 @@ class UrlsDoctorCommand extends Command
     public function handle(): int
     {
         if ($model = $this->option('model')) {
-            $modelClass = app(ModelDiscoveryService::class)->qualify((string) $model);
+            try {
+                $modelClass = app(ModelDiscoveryService::class)->qualify((string) $model);
+            } catch (InvalidArgumentException $e) {
+                $this->error($e->getMessage());
+
+                return self::FAILURE;
+            }
 
             if (! class_exists($modelClass)) {
                 $this->error("Model class {$modelClass} not found");

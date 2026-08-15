@@ -40,6 +40,11 @@ meant there was nothing left to check.
 name, still resolve a bare name against `App\Models`, and report a missing class
 as an error instead of throwing a container exception.
 
+A bare name that is not in `App\Models` now falls back to the discovered models,
+so `--model=Post` keeps working after `App\Models\Post` moves to
+`Modules\Blog\Models\Post`. When the short name matches several models, both
+commands say so and list the candidates rather than picking one.
+
 #### `urlHandler` is validated the way a request resolves it
 
 The controller from `urlHandler()` is now resolved through the

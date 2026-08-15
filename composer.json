@@ -47,7 +47,8 @@
         "psr-4": {
             "Vlados\\LaravelUniqueUrls\\Tests\\": "tests",
             "Modules\\TestModule\\": "tests/Fixtures/Modules/TestModule/app/",
-            "Modules\\LegacyModule\\": "tests/Fixtures/Modules/LegacyModule/"
+            "Modules\\LegacyModule\\": "tests/Fixtures/Modules/LegacyModule/",
+            "Modules\\DuplicateModule\\": "tests/Fixtures/OtherModules/DuplicateModule/app/"
         }
     },
     "scripts": {

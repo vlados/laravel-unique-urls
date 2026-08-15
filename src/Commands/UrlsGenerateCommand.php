@@ -6,6 +6,7 @@ namespace Vlados\LaravelUniqueUrls\Commands;
 
 use Illuminate\Console\Command;
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Vlados\LaravelUniqueUrls\Models\Url;
 use Vlados\LaravelUniqueUrls\Services\ModelDiscoveryService;
 
@@ -36,7 +37,14 @@ class UrlsGenerateCommand extends Command
         $this->totalGenerated = 0;
         $this->totalSkipped = 0;
         $this->totalFailed = 0;
-        $this->targetModel = $this->resolveTargetModel();
+
+        try {
+            $this->targetModel = $this->resolveTargetModel();
+        } catch (InvalidArgumentException $e) {
+            $this->error($e->getMessage());
+
+            return self::FAILURE;
+        }
 
         if ($this->option('fresh')) {
             $this->deleteUrls();
@@ -177,8 +185,8 @@ class UrlsGenerateCommand extends Command
 
     /**
      * Resolve the --model option to a fully qualified class name. Both a FQCN
-     * (App\Models\Page, Modules\Blog\Models\Post) and a bare class name living
-     * in App\Models are accepted.
+     * (App\Models\Page, Modules\Blog\Models\Post) and a short class name are
+     * accepted.
      */
     private function resolveTargetModel(): ?string
     {

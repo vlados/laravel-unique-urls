@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Vlados\LaravelUniqueUrls\Services;
 
 use Illuminate\Support\Collection;
+use InvalidArgumentException;
 use Spatie\ModelInfo\ModelFinder;
 
 /**
@@ -59,8 +60,12 @@ class ModelDiscoveryService
     /**
      * Turn a --model option value into a fully qualified class name.
      *
-     * A value containing a namespace separator is used as-is (only normalised),
-     * a bare class name is looked up in the application's App\Models namespace.
+     * A value containing a namespace separator is used as-is (only normalised).
+     * A bare class name resolves to App\Models first, and falls back to the
+     * discovered models, so a model that moved into a module still answers to
+     * its short name.
+     *
+     * @throws InvalidArgumentException when a bare name matches several models
      */
     public function qualify(string $model): string
     {
@@ -70,7 +75,24 @@ class ModelDiscoveryService
             return $model;
         }
 
-        return 'App\\Models\\' . $model;
+        $applicationModel = 'App\\Models\\' . $model;
+
+        if (class_exists($applicationModel)) {
+            return $applicationModel;
+        }
+
+        $matches = $this->models()
+            ->filter(static fn (string $class): bool => class_basename($class) === $model)
+            ->values();
+
+        if ($matches->count() > 1) {
+            throw new InvalidArgumentException(
+                "The model name {$model} matches more than one class: " . $matches->implode(', ') .
+                '. Pass the fully qualified class name.',
+            );
+        }
+
+        return $matches->count() === 1 ? (string) $matches->first() : $applicationModel;
     }
 
     /**

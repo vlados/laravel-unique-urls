@@ -2,7 +2,7 @@
 
 All notable changes to `laravel-unique-urls` will be documented in this file.
 
-## Unreleased
+## v2.2.0 - 2026-08-15
 
 ### What's New
 
@@ -30,7 +30,12 @@ meant there was nothing left to check.
 
 - A clean run now ends with `Everything is ok — checked 12 models in 2 paths`
 - Finding no models prints a warning listing the scanned paths instead
-- New `--strict` flag turns that empty scan into a failure exit code for CI
+- Any single path that resolves to **no models at all** is named, even when other
+  paths found some. Aggregated away, that reads as health while a whole module
+  goes unchecked — almost always a wrong directory, or a namespace prefix that
+  does not match the project's PSR-4 map and silently drops every class under it
+- New `--strict` flag turns an empty scan — whole or partial — into a failure
+  exit code for CI
 
 #### `--model` behaves the same in both commands
 
@@ -76,6 +81,17 @@ changed is only that such a failure no longer ends the run.
 No configuration change is required: leaving `model_paths` unset — or absent from
 an already published config file — keeps the automatic behaviour, which is a
 superset of the previous `app/`-only scan.
+
+A project that moved models into modules should expect `urls:doctor` to report
+more than before — it was previously blind to them, not clean.
+
+---
+
+## v2.1.1 - 2026-06-03
+
+### Compatibility
+
+- Laravel 13 support (`illuminate/contracts` widened to `^11.0|^12.0|^13.0`)
 
 ---
 

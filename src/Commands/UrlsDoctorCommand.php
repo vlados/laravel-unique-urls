@@ -264,14 +264,60 @@ class UrlsDoctorCommand extends Command
             }
 
             $this->newLine();
+            $this->warnAboutEmptyPaths();
             $this->line($this->scopeSummary());
 
             return self::FAILURE;
         }
 
+        $emptyPaths = $this->warnAboutEmptyPaths();
+
         $this->comment('Everything is ok — ' . $this->scopeSummary());
 
-        return self::SUCCESS;
+        return $emptyPaths > 0 && $this->option('strict') ? self::FAILURE : self::SUCCESS;
+    }
+
+    /**
+     * Name every configured path that resolved to no models at all.
+     *
+     * `checked === 0` only catches the case where EVERY path came back empty.
+     * When one path yields models and another yields none, the totals look
+     * healthy and the silent one disappears into them — which is the exact
+     * failure this command exists to prevent, just one level up: a whole module
+     * going unchecked while the output says everything is fine.
+     *
+     * An empty path is nearly always a misconfigured entry: a directory that
+     * does not exist, or a namespace prefix that does not match the project's
+     * PSR-4 map, so every derived class name fails to autoload and is dropped.
+     *
+     * @return int how many paths came back empty
+     */
+    private function warnAboutEmptyPaths(): int
+    {
+        if (! $this->scannedAllPaths) {
+            return 0;
+        }
+
+        $empty = array_values(array_filter(
+            app(ModelDiscoveryService::class)->modelsByPath(),
+            static fn (array $source): bool => $source['models'] === [],
+        ));
+
+        if ($empty === []) {
+            return 0;
+        }
+
+        $this->warn(count($empty) . ' scanned ' . Str::plural('path', count($empty)) . ' resolved to no models at all:');
+
+        foreach ($empty as $source) {
+            $namespace = $source['namespace'] === '' ? '<application namespace>' : $source['namespace'] . '\\';
+            $this->warn("  - {$source['path']} → {$namespace}");
+        }
+
+        $this->warn('Check the directory and the namespace prefix — a mismatch drops every class silently.');
+        $this->newLine();
+
+        return count($empty);
     }
 
     /**

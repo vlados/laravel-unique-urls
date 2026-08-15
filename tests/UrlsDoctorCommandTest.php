@@ -9,6 +9,7 @@ use Vlados\LaravelUniqueUrls\HasUniqueUrls;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\BrokenHandlerModel;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\ErrorInStrategyModel;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\ShowOnlyController;
+use Vlados\LaravelUniqueUrls\Tests\Fixtures\UninstantiableModel;
 use Vlados\LaravelUniqueUrls\Tests\Fixtures\UnusableController;
 use Vlados\LaravelUniqueUrls\Tests\TestUrlHandler;
 
@@ -118,6 +119,37 @@ test('51. urls:doctor --strict fails when nothing was checked', function () {
     expect(Artisan::call('urls:doctor', ['--strict' => true]))->toBe(1);
 });
 
+/*
+ * Tests 50 and 51 only cover the total-zero case. The dangerous one is partial:
+ * one path yields models, another yields none, the totals look healthy and the
+ * silent path disappears into them — a whole module going unchecked while the
+ * output says everything is fine. That is the same failure this command exists
+ * to catch, one level up.
+ */
+test('50b. urls:doctor names a path that resolved to no models even when others did', function () {
+    Config::set('unique-urls.model_paths', [
+        $this->fixtureModulesPath() . '/TestModule/app/Models',
+        __DIR__ . '/Fixtures/EmptyModelPath',
+    ]);
+
+    $exitCode = Artisan::call('urls:doctor');
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(0)
+        ->and($output)->toContain('Everything is ok')
+        ->and($output)->toContain('resolved to no models at all')
+        ->and($output)->toContain('EmptyModelPath');
+});
+
+test('50c. urls:doctor --strict fails when only some paths resolved to nothing', function () {
+    Config::set('unique-urls.model_paths', [
+        $this->fixtureModulesPath() . '/TestModule/app/Models',
+        __DIR__ . '/Fixtures/EmptyModelPath',
+    ]);
+
+    expect(Artisan::call('urls:doctor', ['--strict' => true]))->toBe(1);
+});
+
 // ============================================
 // urlHandler validation via the ControllerResolver
 // ============================================
@@ -183,11 +215,37 @@ test('59. A controller the container cannot build is an error, not a crash', fun
         ->and(Artisan::output())->toContain('could not be instantiated');
 });
 
+/*
+ * urlStrategy() on an empty instance often cannot build a slug — missing
+ * relations, null attributes — and that is not what the check is about, so the
+ * failure is swallowed ON PURPOSE (UrlsDoctorCommand::checkUrlStrategy()).
+ * The point of this test is that it does not abort the run; it deliberately does
+ * NOT assert that the failure is reported, because it is not. Do not "fix" the
+ * empty catch into noise without changing this test and the CHANGELOG with it.
+ */
 test('60. An Error raised by urlStrategy does not abort the run', function () {
-    // urlStrategy() on an empty instance often cannot build a slug; when that
-    // failure is an Error rather than an Exception it used to escape the check.
     $exitCode = Artisan::call('urls:doctor', ['--model' => ErrorInStrategyModel::class]);
 
     expect($exitCode)->toBe(0)
         ->and(Artisan::output())->toContain('Everything is ok');
+});
+
+/*
+ * The per-model try/catch in checkModel() is the reason one broken model no
+ * longer costs the coverage of every model after it. Without it a single
+ * uninstantiable model ends the command with an unhandled exception and the
+ * operator sees a crash instead of a report — with no hint of how many models
+ * went unchecked. Deleting the wrapper must turn this red.
+ */
+test('61. One uninstantiable model is recorded as an error and the scan continues', function () {
+    Config::set('unique-urls.model_paths', [$this->fixtureModulesPath() . '/TestModule/app/Models']);
+
+    $exitCode = Artisan::call('urls:doctor', ['--model' => UninstantiableModel::class]);
+    $output = Artisan::output();
+
+    expect($exitCode)->toBe(1)
+        ->and($output)->toContain('UninstantiableModel')
+        ->and($output)->toContain('Checking this model failed')
+        // The report still arrives — the run was not aborted.
+        ->and($output)->toContain('checked 1 model');
 });

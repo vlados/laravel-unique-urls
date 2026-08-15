@@ -103,10 +103,22 @@ php artisan urls:doctor [--model=ModelName] [--strict]
 | urlHandler output | Validates array has `controller`, `method`, `arguments` keys |
 | Controller resolves | Resolves the controller through the `ControllerResolver`, so Livewire component names count as valid |
 | Method exists | Mirrors the request handler: `__invoke()` for the Livewire style, otherwise the declared method with `show()`/`index()` as fallbacks |
-| Multi-language URLs | Ensures `urlStrategy()` produces different slugs per language |
+| Multi-language URLs | Ensures `urlStrategy()` produces different slugs per language, when it can build them at all |
 
 A model that cannot be instantiated, or a check that blows up on one model, is
 reported as an error for that model — the remaining models are still checked.
+
+Two things are deliberately quiet. A `urlStrategy()` that throws is skipped
+rather than reported: doctor holds an empty instance, and building a slug from
+one routinely fails on missing relations or null attributes, so reporting it
+would bury the real findings. And doctor validates the **models**, never the
+`urls` table — a stored row whose handler has drifted from the code is outside
+what it can see.
+
+Any configured path that resolves to **no models at all** is named in the output,
+even when other paths found some. That is almost always a wrong directory or a
+namespace prefix that does not match the project's PSR-4 map, which silently
+drops every class under it. With `--strict` it is an error.
 
 ### Examples
 

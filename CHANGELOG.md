@@ -53,10 +53,14 @@ mirrors `LaravelUniqueUrlsController`: `__invoke()` for the Livewire style,
 otherwise the declared method with `show()` and `index()` as fallbacks.
 
 Resolving a controller builds it, which `class_exists()` never did, so a
-controller with an unresolvable dependency, a model that cannot be instantiated
-or a `urlStrategy()` that raises an `Error` are all recorded as errors instead of
-ending the run. One broken model no longer costs the coverage of every model
-after it.
+controller with an unresolvable dependency and a model that cannot be
+instantiated are recorded as errors instead of ending the run. One broken model
+no longer costs the coverage of every model after it.
+
+A failure inside `urlStrategy()` stays deliberately silent. Doctor works with an
+empty instance, and building a slug from one routinely fails on missing relations
+or null attributes — reporting that would bury the real findings in noise. What
+changed is only that such a failure no longer ends the run.
 
 ### Behaviour Changes
 

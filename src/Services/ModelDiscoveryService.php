@@ -28,14 +28,34 @@ class ModelDiscoveryService
      */
     public function models(): Collection
     {
-        return collect($this->paths())
-            ->flatMap(static fn (array $source): array => ModelFinder::all(
+        return collect($this->modelsByPath())
+            ->flatMap(static fn (array $source): array => $source['models'])
+            ->unique()
+            ->values();
+    }
+
+    /**
+     * The same scan as models(), but kept split per source directory.
+     *
+     * A path that resolves to zero models is the signature of a misconfigured
+     * entry — a wrong directory, or a namespace prefix that does not match the
+     * project's PSR-4 map, so every derived class name fails to autoload and is
+     * discarded. Aggregated away, that reads as health: the command reports a
+     * healthy total while a whole module goes unchecked. Callers that care about
+     * scope should use this and say something about the empty ones.
+     *
+     * @return array<int, array{path: string, base_path: string, namespace: string, models: array<int, class-string<\Illuminate\Database\Eloquent\Model>>}>
+     */
+    public function modelsByPath(): array
+    {
+        return array_map(static fn (array $source): array => [
+            ...$source,
+            'models' => ModelFinder::all(
                 $source['path'],
                 $source['base_path'],
                 $source['namespace'],
-            )->all())
-            ->unique()
-            ->values();
+            )->all(),
+        ], $this->paths());
     }
 
     /**
